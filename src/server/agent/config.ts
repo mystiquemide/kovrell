@@ -1,7 +1,7 @@
 import type { RequestDetail } from "../store";
 import type { Challenge } from "../verification/challenges";
 
-export const AGENT_VOICE = "charles";
+export const AGENT_VOICE = "jane";
 
 function spellDigits(digits: string): string {
   return digits.split("").join(" ");
