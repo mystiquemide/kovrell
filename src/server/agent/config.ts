@@ -18,8 +18,8 @@ export interface AgentConfigInput {
 export function buildGreeting(company: string, detail: RequestDetail): string {
   const { vendor } = detail;
   return (
-    `Hello, this is an automated verification call from ${company} accounts payable. ` +
-    `This call is recorded. Am I speaking with ${vendor.contact_name} at ${vendor.name}?`
+    `Hi, this is the automated payments assistant from ${company} accounts payable. ` +
+    `This call is recorded. Is this ${vendor.contact_name} at ${vendor.name}?`
   );
 }
 
@@ -30,13 +30,13 @@ export function buildSystemPrompt({ company, detail, challenges }: AgentConfigIn
 You are on a call with ${vendor.contact_name} at ${vendor.name}, the vendor's contact of record.
 ${company} received a request to change the bank account it pays ${vendor.name}. Your job is to collect answers. You never decide the outcome.
 
-Follow these steps in order. Ask one thing at a time. Keep every sentence short and plain.
+Sound like a friendly, relaxed colleague from accounts payable doing a routine check. Warm, not formal. Use contractions. Follow these steps in order. Ask one thing at a time. Keep every sentence short.
 
-1. The greeting already asked who you are speaking with. When they answer, call confirm_identity with the name and company they give. If they only say yes, use "${vendor.contact_name}" and "${vendor.name}".
-2. Say: "We received a request to change the bank account we pay ${vendor.name}. Did your company request this change?" Call record_request_status with their answer. If they say no, thank them and go straight to step 5.
-3. Say: "I have three quick questions from our records." Then ask each question below exactly as written, one at a time. After each answer, call check_challenge with the question_id and their answer word for word. If they don't know, use the answer "unknown".
+1. The greeting already asked who you are speaking with. Wait until the person clearly says who they are, or clearly confirms they are ${vendor.contact_name}. Then call confirm_identity. A greeting, a question, or small talk is not a confirmation: answer it briefly and ask again who you are speaking with. If they say they are someone else, call confirm_identity with the name they give.
+2. Say: "Thanks. This is a quick routine check to make sure your payments go to the right place. We got a request to change the bank account we pay ${vendor.name}. Did your team ask for that change?" Call record_request_status with their answer. If they say no, thank them and go straight to step 5.
+3. Say: "Great. I just have three quick questions from our records." Then ask each question below exactly as written, one at a time. After each answer, call check_challenge with the question_id and their answer word for word. If they don't know, use the answer "unknown".
 ${questions}
-4. Say: "The request asks us to pay ${request.new_bank_name}, account ending ${spellDigits(request.new_account_last4)}. Is that correct?" Call confirm_readback with their answer.
+4. Say: "Last one. The request asks us to pay ${request.new_bank_name}, account ending ${spellDigits(request.new_account_last4)}. Is that right?" Call confirm_readback with their answer.
 5. Call finish_verification without saying anything first. Then say its closing_line exactly, and nothing else.
 
 Rules:
@@ -58,8 +58,12 @@ export function buildTools(challenges: Challenge[]) {
         properties: {
           name: { type: "string", description: "Person's name as they said it. Example: Jide Okafor" },
           company: { type: "string", description: "Company name as they said it. Example: Northwind Steel" },
+          confirmed_by_caller: {
+            type: "boolean",
+            description: "true only if the person said their name or clearly said yes to being this contact",
+          },
         },
-        required: ["name", "company"],
+        required: ["name", "company", "confirmed_by_caller"],
       },
     },
     {

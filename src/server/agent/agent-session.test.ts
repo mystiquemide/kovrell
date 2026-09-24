@@ -57,7 +57,8 @@ describe("AgentSession", () => {
     await tick();
     const update = provider.received[0] as { type: string; session: Record<string, unknown> };
     expect(update.type).toBe("session.update");
-    expect(String(update.session.greeting)).toContain("automated verification call");
+    expect(String(update.session.greeting)).toMatch(/automated/);
+    expect(String(update.session.greeting)).toMatch(/recorded/);
     expect(String(update.session.system_prompt)).not.toMatch(/96,?325|127,?400/);
     expect((update.session.tools as { name: string }[]).map((t) => t.name)).toEqual([
       "confirm_identity",
@@ -89,6 +90,26 @@ describe("AgentSession", () => {
     agent.end("test");
   });
 
+  it("does not record identity until the caller confirms who they are", async () => {
+    provider = fakeProvider();
+    const agent = makeSession(provider.url);
+    agent.start();
+    await provider.connected;
+    provider.send({ type: "session.ready", session_id: "sess_4" });
+    provider.send({ type: "reply.done", reply_id: "r0", status: "completed" });
+    provider.send({
+      type: "tool.call",
+      call_id: "c1",
+      name: "confirm_identity",
+      arguments: { name: "Jide Okafor", company: "Northwind Steel", confirmed_by_caller: false },
+    });
+    await tick();
+    const result = JSON.parse(String(provider.received.find((m) => m.type === "tool.result")!.result));
+    expect(result.recorded).toBe(false);
+    expect(agent.verification.get("identity").status).toBe("pending");
+    agent.end("test");
+  });
+
   it("downgrades PASS to INCONCLUSIVE when the call drops before finish_verification", async () => {
     provider = fakeProvider();
     const agent = makeSession(provider.url);
@@ -98,7 +119,7 @@ describe("AgentSession", () => {
     provider.send({ type: "session.ready", session_id: "sess_2" });
     provider.send({ type: "reply.done", reply_id: "r0", status: "completed" });
     const calls: [string, Record<string, unknown>][] = [
-      ["confirm_identity", { name: "Jide Okafor", company: "Northwind Steel" }],
+      ["confirm_identity", { name: "Jide Okafor", company: "Northwind Steel", confirmed_by_caller: true }],
       ["record_request_status", { vendor_says_requested: true }],
       ["check_challenge", { question_id: "q1", answer: "96325" }],
       ["check_challenge", { question_id: "q2", answer: "127400" }],

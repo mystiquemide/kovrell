@@ -58,20 +58,20 @@ export const scenarios: Record<string, { requestId: string; respond: Responder }
     respond: (t) => {
       const d = store.getRequestDetail("req_northwind")!;
       const paid = d.invoices.find((i) => i.number === "INV-4502")!;
-      if (/speaking with/i.test(t)) return "Yes, this is Jide Okafor at Northwind Steel.";
-      if (/request this change/i.test(t)) return "Yes, we did. We moved our operating account to Chase last month.";
+      if (/is this|speaking with/i.test(t)) return "Yes, this is Jide Okafor at Northwind Steel.";
+      if (/ask for that change|request this change/i.test(t)) return "Yes, we did. We moved our operating account to Chase last month.";
       if (/4471/.test(t)) return "That one was ninety six thousand three hundred twenty five dollars.";
       if (/4502/.test(t) && /date|when/i.test(t)) return `We received it on ${spokenDate(paid.paid_on!)}.`;
       if (/4502/.test(t)) return "One hundred twenty seven thousand four hundred dollars.";
-      if (/correct\?/i.test(t)) return "Yes, that's correct.";
+      if (/right\?|correct\?/i.test(t)) return "Yes, that's correct.";
       return null;
     },
   },
   halden: {
     requestId: "req_halden",
     respond: (t) => {
-      if (/speaking with/i.test(t)) return "Yes, this is Maria Lindqvist at Halden Freight.";
-      if (/request this change/i.test(t)) return "No, we haven't asked to change anything. Our bank is the same.";
+      if (/is this|speaking with/i.test(t)) return "Yes, this is Maria Lindqvist at Halden Freight.";
+      if (/ask for that change|request this change/i.test(t)) return "No, we haven't asked to change anything. Our bank is the same.";
       return null;
     },
   },

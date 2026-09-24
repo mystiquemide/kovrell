@@ -8,7 +8,7 @@ export const AAI_WS_URL = "wss://agents.assemblyai.com/v1/ws";
 export const MAX_CALL_MS = 6 * 60 * 1000;
 const READY_TIMEOUT_MS = 12_000;
 
-export const CLOSING_LINE = "Thank you. Accounts payable will follow up by email. Goodbye.";
+export const CLOSING_LINE = "That's everything. Thanks for your help. Our accounts payable team will follow up by email. Have a good day.";
 
 export type AgentEvent =
   | { kind: "state"; state: "connecting" | "ready" | "ended"; sessionId?: string; reason?: string }
@@ -198,6 +198,11 @@ export class AgentSession {
     try {
       switch (name) {
         case "confirm_identity":
+          if (args.confirmed_by_caller !== true) {
+            // Not a confirmation yet. Nothing is recorded, so the agent must ask again.
+            result = { recorded: false, next: "The caller has not confirmed who they are. Ask who you are speaking with." };
+            break;
+          }
           v.confirmIdentity(String(args.name ?? ""), String(args.company ?? ""));
           break;
         case "record_request_status":

@@ -58,3 +58,6 @@ docs/DESIGN.md
 
 # local caches
 /.cache/
+
+# temporary voice samples
+/public/_samples/
