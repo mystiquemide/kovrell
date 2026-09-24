@@ -55,3 +55,6 @@ memory.md
 docs/PRD.md
 docs/TASKS.md
 docs/DESIGN.md
+
+# local caches
+/.cache/
