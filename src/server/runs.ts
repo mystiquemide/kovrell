@@ -5,16 +5,26 @@ import type { CallChannel } from "./channels";
 import type { Run, RunEvent, Store } from "./store";
 import { buildChallenges, type Challenge } from "./verification/challenges";
 import { preflight } from "./verification/provenance";
+import { publicChecks, publicRun } from "./views";
 
 export const CALL_LINK_TTL_MS = 15 * 60 * 1000;
 
 export class RunError extends Error {
+  readonly name = "RunError";
   constructor(
     message: string,
     readonly code: "not_found" | "locked" | "not_held" | "busy",
   ) {
     super(message);
   }
+}
+
+/**
+ * The custom server (tsx) and Next's route bundles load separate copies of this module,
+ * so instanceof fails across them. Match on the shape instead.
+ */
+export function isRunError(err: unknown): err is RunError {
+  return err instanceof Error && err.name === "RunError" && typeof (err as RunError).code === "string";
 }
 
 type AgentFactory = (opts: AgentSessionOptions) => AgentSession;
@@ -125,7 +135,9 @@ export class RunController {
       ws.close(4404, "run not found");
       return;
     }
-    ws.send(JSON.stringify({ type: "snapshot", run, events: store.listEvents(runId), checks: store.listChecks(runId) }));
+    ws.send(
+      JSON.stringify({ type: "snapshot", run: publicRun(run), events: store.listEvents(runId), checks: publicChecks(store.listChecks(runId)) }),
+    );
     if (run.status === "ended") return;
     let set = this.watchers.get(runId);
     if (!set) this.watchers.set(runId, (set = new Set()));
@@ -135,6 +147,10 @@ export class RunController {
 
   isLive(runId: string) {
     return this.live.has(runId);
+  }
+
+  hasLiveCalls() {
+    return this.live.size > 0;
   }
 
   private onAgentEvent(runId: string, e: AgentEvent, channel: CallChannel) {

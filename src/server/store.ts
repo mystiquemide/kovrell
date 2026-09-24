@@ -215,6 +215,27 @@ export function createStore(db: Db) {
       return db.prepare("SELECT * FROM checks WHERE run_id = ? ORDER BY rowid ASC").all(runId) as StoredCheck[];
     },
 
+    /** Adds a bank-change request against the vendor's next held or scheduled payment. */
+    createRequest(input: {
+      id: string;
+      vendor_id: string;
+      channel: string;
+      new_bank_name: string;
+      new_account_last4: string;
+      callback_contact: string | null;
+      received_at: string;
+    }): ChangeRequest {
+      const payment = db
+        .prepare("SELECT id FROM payments WHERE vendor_id = ? AND status = 'held' ORDER BY due_on ASC LIMIT 1")
+        .get(input.vendor_id) as { id: string } | undefined;
+      if (!payment) throw new Error(`No held payment for vendor ${input.vendor_id}`);
+      db.prepare(
+        `INSERT INTO requests (id, vendor_id, payment_id, received_at, channel, new_bank_name, new_account_last4, callback_contact, status)
+         VALUES (@id, @vendor_id, @payment_id, @received_at, @channel, @new_bank_name, @new_account_last4, @callback_contact, 'held')`,
+      ).run({ ...input, payment_id: payment.id });
+      return db.prepare("SELECT * FROM requests WHERE id = ?").get(input.id) as ChangeRequest;
+    },
+
     setOutcome(requestId: string, requestStatus: RequestStatus, paymentStatus: PaymentStatus, destinationLast4?: string) {
       db.transaction(() => {
         const req = db.prepare("SELECT payment_id FROM requests WHERE id = ?").get(requestId) as

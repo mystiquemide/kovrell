@@ -24,7 +24,8 @@ export class BrowserChannel implements CallChannel {
   readonly outputEncoding = "audio/pcm" as const;
   private audioCbs: ((b64: string) => void)[] = [];
   private hangupCbs: ((reason: string) => void)[] = [];
-  private closed = false;
+  private ended = false; // hangup callbacks fired
+  private closed = false; // socket close started
 
   constructor(private ws: WebSocket) {
     ws.on("message", (raw, isBinary) => {
@@ -64,14 +65,16 @@ export class BrowserChannel implements CallChannel {
   hangup(reason: string) {
     if (this.closed) return;
     this.closed = true;
+    this.ended = true;
     this.send({ type: "state", state: "ended" });
     // Give queued agent audio a moment to reach the vendor before closing.
     setTimeout(() => this.ws.close(1000, reason), 1500);
   }
 
   private remoteHangup(reason: string) {
-    if (this.closed) return;
-    this.closed = true;
+    // The socket still gets closed by hangup() once the call has wrapped up.
+    if (this.ended) return;
+    this.ended = true;
     for (const cb of this.hangupCbs) cb(reason);
   }
 
