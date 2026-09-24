@@ -21,33 +21,33 @@ export default async function VendorPage({ params }: PageProps<"/vendors/[id]">)
 
   return (
     <div className="reveal">
-      <Link href="/vendors" className="label text-zinc hover:text-cream">
+      <Link href="/vendors" className="label text-subtle hover:text-ink">
         &larr; Vendors
       </Link>
       <h1 className="heading mt-6 text-[32px] sm:text-[40px]">{vendor.name}</h1>
 
-      <section className="mt-10 grid gap-px overflow-hidden rounded-[5.6px] border border-iron bg-iron sm:grid-cols-2">
-        <div className="bg-carbon p-6">
-          <p className="label text-zinc">Contact of record</p>
+      <section className="mt-10 grid gap-px overflow-hidden rounded-[5.6px] border border-line bg-line sm:grid-cols-2">
+        <div className="bg-panel p-6">
+          <p className="label text-subtle">Contact of record</p>
           <p className="mt-3 text-[18px]">{vendor.contact_name}</p>
-          <p className="data mt-1 text-mercury">{vendor.contact_phone}</p>
-          <p className="data text-[14px] text-mercury">{vendor.contact_email}</p>
+          <p className="data mt-1 text-muted">{vendor.contact_phone}</p>
+          <p className="data text-[14px] text-muted">{vendor.contact_email}</p>
         </div>
-        <div className="bg-carbon p-6">
-          <p className="label text-zinc">Bank on file</p>
+        <div className="bg-panel p-6">
+          <p className="label text-subtle">Bank on file</p>
           <p className="mt-3 text-[18px]">{vendor.bank_name}</p>
-          <p className="mt-1 text-mercury">
-            Account ending <span className="data text-cream">{vendor.account_last4}</span>
+          <p className="mt-1 text-muted">
+            Account ending <span className="data text-ink">{vendor.account_last4}</span>
           </p>
         </div>
       </section>
 
       <section className="mt-12">
-        <p className="label text-zinc">Change log</p>
+        <p className="label text-subtle">Change log</p>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full min-w-[640px] border-collapse text-left">
             <thead>
-              <tr className="label text-zinc">
+              <tr className="label text-subtle">
                 <th className="pb-3 font-medium">Field</th>
                 <th className="pb-3 font-medium">From</th>
                 <th className="pb-3 font-medium">To</th>
@@ -58,15 +58,15 @@ export default async function VendorPage({ params }: PageProps<"/vendors/[id]">)
             <tbody>
               {changes.map((c) => {
                 return (
-                  <tr key={c.id} className="border-t border-iron">
+                  <tr key={c.id} className="border-t border-line">
                     <td className="py-3 pr-4">{FIELD[c.field] ?? c.field}</td>
-                    <td className="data py-3 pr-4 text-[14px] text-mercury">{c.old_value ?? "New"}</td>
+                    <td className="data py-3 pr-4 text-[14px] text-muted">{c.old_value ?? "New"}</td>
                     <td className="data py-3 pr-4 text-[14px]">{c.new_value}</td>
-                    <td className="data py-3 pr-4 text-[14px] text-mercury">
+                    <td className="data py-3 pr-4 text-[14px] text-muted">
                       {dateOnly(c.changed_at)}
-                      {c.recent && <span className="label ml-3 text-ember">Within {PROVENANCE_WINDOW_DAYS} days</span>}
+                      {c.recent && <span className="label ml-3 text-fail">Within {PROVENANCE_WINDOW_DAYS} days</span>}
                     </td>
-                    <td className="py-3 text-[14px] text-mercury">{c.source}</td>
+                    <td className="py-3 text-[14px] text-muted">{c.source}</td>
                   </tr>
                 );
               })}

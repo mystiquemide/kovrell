@@ -36,7 +36,7 @@ export function LiveCall({ initial, callPath }: { initial: View; callPath: strin
     () => "",
   );
   const [copied, setCopied] = useState(false);
-  const transcriptEnd = useRef<HTMLDivElement>(null);
+  const transcriptBox = useRef<HTMLDivElement>(null);
 
   const ended = run.status === "ended";
   const expired = run.status === "ringing" && Date.parse(run.token_expires_at) < now;
@@ -84,8 +84,10 @@ export function LiveCall({ initial, callPath }: { initial: View; callPath: strin
     return () => ws.close();
   }, [run.id, ended, router]);
 
+  // Keep the newest line in view by scrolling the transcript box only, never the page.
   useEffect(() => {
-    transcriptEnd.current?.scrollIntoView({ block: "nearest" });
+    const box = transcriptBox.current;
+    if (box) box.scrollTop = box.scrollHeight;
   }, [events.length, partial]);
 
   const answeredAt = useMemo(() => {
@@ -100,22 +102,22 @@ export function LiveCall({ initial, callPath }: { initial: View; callPath: strin
 
   return (
     <div className="reveal">
-      <Link href={`/requests/${run.request_id}`} className="label text-zinc hover:text-cream">
+      <Link href={`/requests/${run.request_id}`} className="label text-subtle hover:text-ink">
         &larr; {initial.vendor.name}
       </Link>
 
       <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="label text-zinc">
+          <p className="label text-subtle">
             {ended ? "Verification run" : run.status === "live" ? "Calling" : expired ? "Call link expired" : "Ringing"}{" "}
-            <span className="data text-mercury normal-case">{initial.vendor.contact_phone}</span>
+            <span className="data text-muted normal-case">{initial.vendor.contact_phone}</span>
           </p>
           <h1 className="heading mt-2 text-[32px] sm:text-[40px]">
             {initial.vendor.contact_name}, {initial.vendor.name}
           </h1>
         </div>
         <div className="flex items-center gap-4">
-          {answeredAt && <span className="data text-[20px] text-mercury">{clock(elapsed)}</span>}
+          {answeredAt && <span className="data text-[20px] text-muted">{clock(elapsed)}</span>}
           <Stamp kind={verdictStamp(run.verdict, expired ? "ended" : run.status)} large />
         </div>
       </div>
@@ -123,9 +125,9 @@ export function LiveCall({ initial, callPath }: { initial: View; callPath: strin
       {ended && <Verdict view={initial} run={run} />}
 
       {!ended && run.status === "ringing" && !expired && (
-        <section className="mt-10 rounded-[5.6px] border border-iron bg-carbon p-6">
-          <p className="label text-zinc">Call link for the contact of record</p>
-          <p className="data mt-3 break-all text-[14px] text-cream">{callUrl ?? "Preparing link"}</p>
+        <section className="mt-10 rounded-[5.6px] border border-line bg-panel p-6">
+          <p className="label text-subtle">Call link for the contact of record</p>
+          <p className="data mt-3 break-all text-[14px] text-ink">{callUrl ?? "Preparing link"}</p>
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <button
               className={SECONDARY}
@@ -144,9 +146,9 @@ export function LiveCall({ initial, callPath }: { initial: View; callPath: strin
                 Open vendor line
               </a>
             )}
-            <span className="text-[14px] text-mercury">Expires in {clock(Date.parse(run.token_expires_at) - now)}.</span>
+            <span className="text-[14px] text-muted">Expires in {clock(Date.parse(run.token_expires_at) - now)}.</span>
           </div>
-          <p className="mt-4 text-[14px] text-zinc">
+          <p className="mt-4 text-[14px] text-subtle">
             This build rings the vendor in a browser softphone. In production the link goes by SMS to the number of record, or the
             call is placed on the phone line directly.
           </p>
@@ -154,8 +156,8 @@ export function LiveCall({ initial, callPath }: { initial: View; callPath: strin
       )}
 
       {expired && !ended && (
-        <section className="mt-10 border-t border-iron pt-8">
-          <p className="text-mercury">Nobody answered within 15 minutes. The payment stays held.</p>
+        <section className="mt-10 border-t border-line pt-8">
+          <p className="text-muted">Nobody answered within 15 minutes. The payment stays held.</p>
           <div className="mt-5">
             <CallButton requestId={run.request_id} contactName={initial.vendor.contact_name} disabledReason={null} label="Call again" />
           </div>
@@ -166,10 +168,10 @@ export function LiveCall({ initial, callPath }: { initial: View; callPath: strin
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_360px]">
         <section>
-          <p className="label text-zinc">Transcript</p>
-          <div className="mt-3 max-h-[520px] overflow-y-auto border-t border-iron">
+          <p className="label text-subtle">Transcript</p>
+          <div ref={transcriptBox} className="mt-3 max-h-[520px] overflow-y-auto border-t border-line">
             {lines.length === 0 && !partial && (
-              <p className="py-4 text-mercury">{run.status === "ringing" ? "Waiting for the vendor to answer." : "Connecting to the voice agent."}</p>
+              <p className="py-4 text-muted">{run.status === "ringing" ? "Waiting for the vendor to answer." : "Connecting to the voice agent."}</p>
             )}
             {lines.map((e) => (
               <Line key={e.id} e={e} />
@@ -177,33 +179,32 @@ export function LiveCall({ initial, callPath }: { initial: View; callPath: strin
             {partial && (
               <div className="grid grid-cols-[56px_64px_1fr] gap-3 py-3">
                 <span />
-                <span className="label text-mercury">Vendor</span>
-                <span className="text-mercury">{partial}</span>
+                <span className="label text-muted">Vendor</span>
+                <span className="text-muted">{partial}</span>
               </div>
             )}
-            <div ref={transcriptEnd} />
           </div>
         </section>
 
         <aside>
-          <p className="label text-zinc">Checks</p>
-          <div className="mt-3 border-t border-iron">
+          <p className="label text-subtle">Checks</p>
+          <div className="mt-3 border-t border-line">
             {checks.map((c) => (
-              <div key={c.key} className="border-b border-iron py-3">
+              <div key={c.key} className="border-b border-line py-3">
                 <div className="flex items-baseline justify-between gap-4">
                   <span className="text-[15px]">{initial.labels[c.key] ?? c.key}</span>
-                  <span className={`label ${c.status === "pass" ? "text-mint" : c.status === "fail" ? "text-ember" : "text-zinc"}`}>
+                  <span className={`label ${c.status === "pass" ? "text-pass" : c.status === "fail" ? "text-fail" : "text-subtle"}`}>
                     {c.status === "pending" ? "Waiting" : c.status}
                   </span>
                 </div>
-                {c.heard && <p className="data mt-1 text-[13px] text-mercury">{c.heard}</p>}
+                {c.heard && <p className="data mt-1 text-[13px] text-muted">{c.heard}</p>}
               </div>
             ))}
-            {checks.length === 0 && <p className="py-3 text-[14px] text-mercury">Checks start when the vendor answers.</p>}
+            {checks.length === 0 && <p className="py-3 text-[14px] text-muted">Checks start when the vendor answers.</p>}
           </div>
 
-          <p className="label mt-8 text-zinc">Payment</p>
-          <div className="mt-3 flex items-center justify-between border-t border-iron pt-3">
+          <p className="label mt-8 text-subtle">Payment</p>
+          <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
             <span className="data text-[18px]">{money(payment.amount_cents)}</span>
             <Stamp kind={run.verdict === "PASS" ? "VERIFIED" : run.verdict === "FAIL" ? "BLOCKED" : "HELD"} />
           </div>
@@ -214,15 +215,15 @@ export function LiveCall({ initial, callPath }: { initial: View; callPath: strin
 }
 
 function Line({ e }: { e: Event }) {
-  const t = <span className="data text-[13px] text-zinc">{clock(e.t_ms)}</span>;
+  const t = <span className="data text-[13px] text-subtle">{clock(e.t_ms)}</span>;
   if (e.kind === "tool") {
     const p = payloadOf<{ name: string; args: Record<string, unknown> }>(e);
     const arg = p.args.question_id ? `(${String(p.args.question_id)})` : "";
     return (
       <div className="grid grid-cols-[56px_64px_1fr] gap-3 py-2">
         {t}
-        <span className="label text-zinc">Tool</span>
-        <span className="data text-[13px] text-zinc">
+        <span className="label text-subtle">Tool</span>
+        <span className="data text-[13px] text-subtle">
           {p.name}
           {arg}
         </span>
@@ -234,18 +235,18 @@ function Line({ e }: { e: Event }) {
     return (
       <div className="grid grid-cols-[56px_64px_1fr] gap-3 py-2">
         {t}
-        <span className="label text-ember">Error</span>
-        <span className="text-[14px] text-ember">{p.message}</span>
+        <span className="label text-fail">Error</span>
+        <span className="text-[14px] text-fail">{p.message}</span>
       </div>
     );
   }
   const text = payloadOf<{ text: string }>(e).text;
   const agent = e.kind === "agent";
   return (
-    <div className="grid grid-cols-[56px_64px_1fr] gap-3 border-b border-iron/60 py-3 last:border-b-0">
+    <div className="grid grid-cols-[56px_64px_1fr] gap-3 border-b border-line/60 py-3 last:border-b-0">
       {t}
-      <span className={`label ${agent ? "text-cream" : "text-mercury"}`}>{agent ? "Agent" : "Vendor"}</span>
-      <span className={agent ? "text-cream" : "text-bone"}>{text}</span>
+      <span className={`label ${agent ? "text-ink" : "text-muted"}`}>{agent ? "Agent" : "Vendor"}</span>
+      <span className={agent ? "text-ink" : "text-ink-2"}>{text}</span>
     </div>
   );
 }
@@ -254,10 +255,10 @@ function Verdict({ view, run }: { view: View; run: View["run"] }) {
   const pass = run.verdict === "PASS";
   const fail = run.verdict === "FAIL";
   return (
-    <section className="mt-10 rounded-[5.6px] border border-iron bg-carbon p-6 sm:p-8">
+    <section className="mt-10 rounded-[5.6px] border border-line bg-panel p-6 sm:p-8">
       <div className="flex items-center gap-3">
         <Mark size={24} verified={pass} />
-        <p className={`label ${pass ? "text-mint" : fail ? "text-ember" : "text-mercury"}`}>
+        <p className={`label ${pass ? "text-pass" : fail ? "text-fail" : "text-muted"}`}>
           {pass ? "Verified" : fail ? "Blocked" : "Inconclusive"}
         </p>
       </div>
@@ -268,7 +269,7 @@ function Verdict({ view, run }: { view: View; run: View["run"] }) {
             ? "Payment blocked. Account on file kept."
             : "Payment stays held."}
       </p>
-      <p className="mt-2 text-mercury">{run.reason}</p>
+      <p className="mt-2 text-muted">{run.reason}</p>
       <div className="mt-6 flex flex-wrap items-center gap-4">
         <Link href={`/evidence/${run.id}`} className={SECONDARY}>
           Evidence pack

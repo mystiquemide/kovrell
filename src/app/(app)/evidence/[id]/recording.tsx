@@ -35,7 +35,7 @@ export function Recording({ runId, levels, available }: { runId: string; levels:
   }, []);
 
   if (!available) {
-    return <p className="text-mercury">The recording is processing. It appears here within a minute of the call ending.</p>;
+    return <p className="text-muted">The recording is processing. It appears here within a minute of the call ending.</p>;
   }
 
   return (
@@ -50,11 +50,11 @@ export function Recording({ runId, levels, available }: { runId: string; levels:
             else void a.play().catch(() => setError("The recording could not play."));
             setPlaying(!playing);
           }}
-          className="label inline-flex h-10 w-24 items-center justify-center rounded-full bg-cream text-void hover:bg-bone"
+          className="label inline-flex h-10 w-24 items-center justify-center rounded-full bg-ink text-canvas hover:bg-ink-2"
         >
           {playing ? "Pause" : "Play"}
         </button>
-        <span className="data text-[14px] text-mercury">
+        <span className="data text-[14px] text-muted">
           {clock(time * 1000)} / {length ? clock(length * 1000) : "--:--"}
         </span>
       </div>
@@ -72,8 +72,8 @@ export function Recording({ runId, levels, available }: { runId: string; levels:
           <Waveform levels={levels} height={56} progress={length ? time / length : 0} />
         </button>
       )}
-      {error && <p className="mt-3 text-[14px] text-ember">{error}</p>}
-      <p className="mt-3 text-[13px] text-zinc">Stereo recording from AssemblyAI. Vendor on the left channel, agent on the right.</p>
+      {error && <p className="mt-3 text-[14px] text-fail">{error}</p>}
+      <p className="mt-3 text-[13px] text-subtle">Stereo recording from AssemblyAI. Vendor on the left channel, agent on the right.</p>
     </div>
   );
 }

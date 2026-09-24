@@ -13,22 +13,26 @@ const LINKS = [
 export function Nav({ company }: { company: string }) {
   const path = usePathname();
   return (
-    <header className="border-b border-iron">
-      <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-6 px-4 sm:px-6">
+    <header className="sticky top-0 z-30 border-b border-line bg-canvas">
+      <div className="mx-auto flex h-[72px] max-w-[1280px] items-center justify-between gap-6 px-4 sm:px-8">
         <Link href="/" aria-label="Kovrell home">
           <Wordmark />
         </Link>
-        <nav className="flex items-center gap-5 sm:gap-8">
+        <nav className="flex items-center gap-5 sm:gap-9">
           {LINKS.map((l) => {
             const active = l.match.some((m) => path.startsWith(m));
             return (
-              <Link key={l.href} href={l.href} className={`label transition-colors ${active ? "text-cream" : "text-zinc hover:text-cream"}`}>
+              <Link
+                key={l.href}
+                href={l.href}
+                className={`font-display text-[15px] font-medium transition-colors ${active ? "text-ink" : "text-subtle hover:text-ink"}`}
+              >
                 {l.label}
               </Link>
             );
           })}
         </nav>
-        <span className="label hidden rounded-[5.6px] bg-slab px-3 py-1.5 text-mercury md:inline">{company}  AP</span>
+        <span className="hidden h-10 items-center rounded-[12px] bg-chip px-4 font-display text-[15px] font-medium text-ink md:inline-flex">{company}</span>
       </div>
     </header>
   );

@@ -39,11 +39,11 @@ export function CallButton({
         <button onClick={start} disabled={busy || Boolean(disabledReason)} className={PRIMARY}>
           {busy ? "Starting run" : label} {!busy && <Arrow />}
         </button>
-        <p className={`text-[14px] ${disabledReason ? "text-ember" : "text-mercury"}`}>
+        <p className={`text-[14px] ${disabledReason ? "text-fail" : "text-muted"}`}>
           {disabledReason ?? `Rings ${contactName} on a secure call link.`}
         </p>
       </div>
-      {error && <p className="mt-3 text-[14px] text-ember">{error}</p>}
+      {error && <p className="mt-3 text-[14px] text-fail">{error}</p>}
     </div>
   );
 }

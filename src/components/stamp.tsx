@@ -1,13 +1,13 @@
 export type StampKind = "HELD" | "VERIFIED" | "BLOCKED" | "LOCKED" | "INCONCLUSIVE" | "LIVE" | "RINGING";
 
 const STYLE: Record<StampKind, string> = {
-  VERIFIED: "border-mint text-mint",
-  BLOCKED: "border-ember text-ember",
-  HELD: "border-steel text-cream",
-  LIVE: "border-cream text-cream",
-  RINGING: "border-steel text-cream",
-  LOCKED: "border-steel text-mercury",
-  INCONCLUSIVE: "border-steel text-mercury",
+  VERIFIED: "border-pass text-pass",
+  BLOCKED: "border-fail text-fail",
+  HELD: "border-line-strong text-ink",
+  LIVE: "border-ink text-ink",
+  RINGING: "border-line-strong text-ink",
+  LOCKED: "border-line-strong text-muted",
+  INCONCLUSIVE: "border-line-strong text-muted",
 };
 
 export function Stamp({ kind, large = false }: { kind: StampKind; large?: boolean }) {

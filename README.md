@@ -14,4 +14,4 @@ npm run dev
 
 ## Image credits
 
-Photos from Unsplash under the Unsplash License: dark green texture by Daniela Paola Alchapar, rotary telephone by Sam Loyd.
+Photos from Unsplash under the Unsplash License: forest in motion by Beau Carpenter, warm blur by Liana S.

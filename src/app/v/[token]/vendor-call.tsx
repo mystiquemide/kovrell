@@ -155,7 +155,7 @@ export function VendorCall({ token, company, callerLine }: { token: string; comp
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 py-10">
       <Wordmark />
       <div className="flex flex-1 flex-col justify-center py-12">
-        <p className={`label ${phase === "error" ? "text-ember" : "text-zinc"}`}>
+        <p className={`label ${phase === "error" ? "text-fail" : "text-subtle"}`}>
           {phase === "ringing"
             ? "Incoming verification call"
             : phase === "live"
@@ -167,8 +167,8 @@ export function VendorCall({ token, company, callerLine }: { token: string; comp
                   : "Call could not connect"}
         </p>
         <h1 className="heading mt-4 text-[40px]">{company}</h1>
-        <p className="mt-1 text-[18px] text-mercury">accounts payable</p>
-        <p className="mt-6 text-bone">{callerLine}. About two minutes.</p>
+        <p className="mt-1 text-[18px] text-muted">accounts payable</p>
+        <p className="mt-6 text-ink-2">{callerLine}. About two minutes.</p>
 
         {(phase === "live" || phase === "connecting") && <Waveform levels={levels} height={48} className="mt-10 overflow-hidden" />}
 
@@ -180,17 +180,17 @@ export function VendorCall({ token, company, callerLine }: { token: string; comp
           )}
           {(phase === "connecting" || phase === "live") && (
             <>
-              <p className="mb-5 text-mercury">{phase === "connecting" ? "Connecting to the verification agent." : "Speak normally. The agent can hear you."}</p>
+              <p className="mb-5 text-muted">{phase === "connecting" ? "Connecting to the verification agent." : "Speak normally. The agent can hear you."}</p>
               <button onClick={() => cleanup.current()} className={`${SECONDARY} w-full`}>
                 Hang up
               </button>
             </>
           )}
-          {phase === "ended" && <p className="text-mercury">Thanks. You can close this page.</p>}
-          {phase === "error" && <p className="text-ember">{error}</p>}
+          {phase === "ended" && <p className="text-muted">Thanks. You can close this page.</p>}
+          {phase === "error" && <p className="text-fail">{error}</p>}
         </div>
       </div>
-      <p className="border-t border-iron pt-5 text-[13px] text-zinc">
+      <p className="border-t border-line pt-5 text-[13px] text-subtle">
         This call is automated and recorded. {company} will never ask for passwords or card numbers.
       </p>
     </main>

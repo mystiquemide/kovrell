@@ -1,36 +1,70 @@
 @import "tailwindcss";
 
-@theme {
-  --color-void: #0e0e13;
-  --color-carbon: #09090b;
-  --color-slab: #18181b;
-  --color-iron: #27272a;
-  --color-steel: #3f3f46;
-  --color-zinc: #71717a;
-  --color-mercury: #a1a1aa;
-  --color-bone: #f4f4f5;
-  --color-cream: #fffaea;
+/*
+ * Light by default, like the reference marketing site. Any block wrapped in .theme-dark
+ * (hero, black sections, product frames) flips the same tokens to the dark console palette,
+ * so components render correctly on either surface without duplicate code.
+ */
+@theme inline {
+  --color-canvas: var(--k-canvas);
+  --color-panel: var(--k-panel);
+  --color-chip: var(--k-chip);
+  --color-line: var(--k-line);
+  --color-line-strong: var(--k-line-strong);
+  --color-ink: var(--k-ink);
+  --color-ink-2: var(--k-ink-2);
+  --color-muted: var(--k-muted);
+  --color-subtle: var(--k-subtle);
+  --color-pass: var(--k-pass);
+  --color-fail: var(--k-fail);
   --color-mint: #62f6b5;
-  --color-ember: #e96b34;
+  --color-black: #000000;
   --color-spec-blue: #4dcafa;
   --color-spec-pink: #de94e2;
   --color-spec-yellow: #ffdd03;
   --color-spec-violet: #9977ff;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-inter-tight), var(--font-inter), ui-sans-serif, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
 
-  --radius-panel: 5.6px;
+:root {
+  --k-canvas: #fefefe;
+  --k-panel: #fbfbfb;
+  --k-chip: #efeeec;
+  --k-line: #e8e6e3;
+  --k-line-strong: #d9d3c2;
+  --k-ink: #111013;
+  --k-ink-2: #27272a;
+  --k-muted: #52525b;
+  --k-subtle: #71717a;
+  --k-pass: #0b7a55;
+  --k-fail: #c2410c;
+}
+
+.theme-dark {
+  --k-canvas: #0e0e13;
+  --k-panel: #09090b;
+  --k-chip: #18181b;
+  --k-line: #27272a;
+  --k-line-strong: #3f3f46;
+  --k-ink: #fffaea;
+  --k-ink-2: #f4f4f5;
+  --k-muted: #a1a1aa;
+  --k-subtle: #8a8a93;
+  --k-pass: #62f6b5;
+  --k-fail: #e96b34;
+  color: var(--k-ink);
 }
 
 html {
-  background: var(--color-void);
-  color-scheme: dark;
+  background: var(--k-canvas);
 }
 
 body {
-  background: var(--color-void);
-  color: var(--color-cream);
+  background: var(--k-canvas);
+  color: var(--k-ink);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.5;
@@ -38,11 +72,11 @@ body {
 }
 
 ::selection {
-  background: var(--color-cream);
-  color: var(--color-void);
+  background: var(--k-ink);
+  color: var(--k-canvas);
 }
 
-/* Console label: mono, uppercase, wide tracking. */
+/* Eyebrow and console label: mono, uppercase, tracked. */
 .label {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -52,25 +86,43 @@ body {
   text-transform: uppercase;
 }
 
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .data {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
+/* Display: heavy and tight. */
 .display {
-  font-weight: 300;
-  letter-spacing: -0.022em;
-  line-height: 1.05;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  line-height: 1.02;
 }
 
 .heading {
-  font-weight: 300;
-  letter-spacing: -0.016em;
-  line-height: 1.2;
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+}
+
+.subheading {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
 }
 
 :focus-visible {
-  outline: 1px solid var(--color-cream);
+  outline: 2px solid var(--k-ink);
   outline-offset: 3px;
 }
 
