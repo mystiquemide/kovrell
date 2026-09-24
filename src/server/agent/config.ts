@@ -37,7 +37,7 @@ Follow these steps in order. Ask one thing at a time. Keep every sentence short 
 3. Say: "I have three quick questions from our records." Then ask each question below exactly as written, one at a time. After each answer, call check_challenge with the question_id and their answer word for word. If they don't know, use the answer "unknown".
 ${questions}
 4. Say: "The request asks us to pay ${request.new_bank_name}, account ending ${spellDigits(request.new_account_last4)}. Is that correct?" Call confirm_readback with their answer.
-5. Call finish_verification. Then say its closing_line exactly, and nothing else.
+5. Call finish_verification without saying anything first. Then say its closing_line exactly, and nothing else.
 
 Rules:
 - Never say any amount, date, invoice total, or account number from our records. If asked, say you can't share records on this call.
@@ -106,6 +106,8 @@ export function buildTools(challenges: Challenge[]) {
       name: "finish_verification",
       description: "End the verification. Call when every step is done, when they deny the request, or when they ask for a person.",
       parameters: { type: "object", properties: {} },
+      // Stay quiet until the closing line arrives, so the call ends with exactly one goodbye.
+      execution_mode: "hold",
     },
   ];
 }

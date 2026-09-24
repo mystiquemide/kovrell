@@ -1,6 +1,8 @@
 import { createServer } from "node:http";
 import next from "next";
 import { WebSocketServer, type WebSocket } from "ws";
+import { RunController, setRunController } from "./src/server/runs";
+import { getStore } from "./src/server/store";
 import { wsRoutes } from "./src/server/ws-routes";
 
 const port = parseInt(process.env.PORT || "3000", 10);
@@ -9,6 +11,18 @@ const app = next({ dev });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
+  // Next has loaded .env files by now.
+  const apiKey = process.env.ASSEMBLYAI_API_KEY;
+  if (!apiKey) throw new Error("ASSEMBLYAI_API_KEY is not set");
+  setRunController(
+    new RunController({
+      store: getStore(),
+      apiKey,
+      company: process.env.KOVRELL_COMPANY_NAME || "Acme Manufacturing",
+      publicBaseUrl: process.env.PUBLIC_BASE_URL || `http://localhost:${port}`,
+    }),
+  );
+
   const nextUpgrade = app.getUpgradeHandler();
   const wss = new WebSocketServer({ noServer: true });
 

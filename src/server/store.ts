@@ -68,6 +68,41 @@ export interface RequestDetail {
   invoices: Invoice[];
 }
 
+export type RunStatus = "ringing" | "live" | "ended";
+export type RunVerdict = "PASS" | "FAIL" | "INCONCLUSIVE";
+
+export interface Run {
+  id: string;
+  request_id: string;
+  channel: string;
+  call_token: string;
+  token_expires_at: string;
+  token_used: number;
+  aai_session_id: string | null;
+  status: RunStatus;
+  verdict: RunVerdict | null;
+  reason: string | null;
+  started_at: string;
+  ended_at: string | null;
+  evidence_sha256: string | null;
+}
+
+export interface RunEvent {
+  id: number;
+  run_id: string;
+  t_ms: number;
+  kind: string;
+  payload: unknown;
+}
+
+export interface StoredCheck {
+  run_id: string;
+  key: string;
+  status: string;
+  expected: string | null;
+  heard: string | null;
+}
+
 export function createStore(db: Db) {
   const isEmpty = () => (db.prepare("SELECT COUNT(*) AS n FROM vendors").get() as { n: number }).n === 0;
 
@@ -118,6 +153,66 @@ export function createStore(db: Db) {
         .prepare("SELECT * FROM vendor_changes WHERE vendor_id = ? ORDER BY changed_at DESC")
         .all(id) as VendorChange[];
       return { vendor, changes };
+    },
+
+    createRun(run: Pick<Run, "id" | "request_id" | "channel" | "call_token" | "token_expires_at" | "started_at">) {
+      db.prepare(
+        `INSERT INTO runs (id, request_id, channel, call_token, token_expires_at, status, started_at)
+         VALUES (@id, @request_id, @channel, @call_token, @token_expires_at, 'ringing', @started_at)`,
+      ).run(run);
+    },
+
+    getRun(id: string): Run | null {
+      return (db.prepare("SELECT * FROM runs WHERE id = ?").get(id) as Run | undefined) ?? null;
+    },
+
+    getRunByToken(token: string): Run | null {
+      return (db.prepare("SELECT * FROM runs WHERE call_token = ?").get(token) as Run | undefined) ?? null;
+    },
+
+    latestRunForRequest(requestId: string): Run | null {
+      return (
+        (db.prepare("SELECT * FROM runs WHERE request_id = ? ORDER BY started_at DESC LIMIT 1").get(requestId) as
+          | Run
+          | undefined) ?? null
+      );
+    },
+
+    /** Marks a call token used. Returns false if it was already used, so each link answers once. */
+    claimToken(token: string): boolean {
+      return db.prepare("UPDATE runs SET token_used = 1 WHERE call_token = ? AND token_used = 0").run(token).changes === 1;
+    },
+
+    updateRun(id: string, fields: Partial<Pick<Run, "aai_session_id" | "status" | "verdict" | "reason" | "ended_at" | "evidence_sha256">>) {
+      const keys = Object.keys(fields);
+      if (!keys.length) return;
+      db.prepare(`UPDATE runs SET ${keys.map((k) => `${k} = @${k}`).join(", ")} WHERE id = @id`).run({ ...fields, id });
+    },
+
+    addEvent(runId: string, tMs: number, kind: string, payload: unknown): RunEvent {
+      const info = db
+        .prepare("INSERT INTO run_events (run_id, t_ms, kind, payload_json) VALUES (?, ?, ?, ?)")
+        .run(runId, tMs, kind, JSON.stringify(payload));
+      return { id: Number(info.lastInsertRowid), run_id: runId, t_ms: tMs, kind, payload };
+    },
+
+    listEvents(runId: string): RunEvent[] {
+      return (
+        db.prepare("SELECT * FROM run_events WHERE run_id = ? ORDER BY id ASC").all(runId) as (Omit<RunEvent, "payload"> & {
+          payload_json: string;
+        })[]
+      ).map(({ payload_json, ...e }) => ({ ...e, payload: JSON.parse(payload_json) }));
+    },
+
+    upsertCheck(check: StoredCheck) {
+      db.prepare(
+        `INSERT INTO checks (run_id, key, status, expected, heard) VALUES (@run_id, @key, @status, @expected, @heard)
+         ON CONFLICT(run_id, key) DO UPDATE SET status = excluded.status, heard = excluded.heard`,
+      ).run(check);
+    },
+
+    listChecks(runId: string): StoredCheck[] {
+      return db.prepare("SELECT * FROM checks WHERE run_id = ? ORDER BY rowid ASC").all(runId) as StoredCheck[];
     },
 
     setOutcome(requestId: string, requestStatus: RequestStatus, paymentStatus: PaymentStatus, destinationLast4?: string) {
