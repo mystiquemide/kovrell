@@ -305,26 +305,6 @@ export function createStore(db: Db) {
       };
     },
 
-    /** Median of per-run median response times across sealed runs, or null when none exist. */
-    measuredResponseMs(): number | null {
-      const rows = db
-        .prepare("SELECT median_response_ms AS m FROM evidence WHERE median_response_ms IS NOT NULL ORDER BY m")
-        .all() as { m: number }[];
-      if (!rows.length) return null;
-      return rows[Math.floor(rows.length / 2)].m;
-    },
-
-    /** Latest run with a stored recording, for the landing page. */
-    latestRecordedRun(): { run_id: string; levels: number[]; verdict: string | null } | null {
-      const r = db
-        .prepare(
-          `SELECT e.run_id, e.levels_json, runs.verdict FROM evidence e JOIN runs ON runs.id = e.run_id
-           WHERE e.audio_available = 1 ORDER BY runs.started_at DESC LIMIT 1`,
-        )
-        .get() as { run_id: string; levels_json: string; verdict: string | null } | undefined;
-      return r ? { run_id: r.run_id, levels: JSON.parse(r.levels_json), verdict: r.verdict } : null;
-    },
-
     /** Adds a bank-change request against the vendor's next held or scheduled payment. */
     createRequest(input: {
       id: string;

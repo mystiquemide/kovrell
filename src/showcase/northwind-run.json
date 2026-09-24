@@ -1,0 +1,1062 @@
+{
+ "recorded_at": "2026-09-24T22:53:26.149Z",
+ "run": {
+  "id": "run_acfbdd63",
+  "request_id": "req_northwind",
+  "channel": "browser",
+  "token_expires_at": "2026-09-24T23:08:26.149Z",
+  "token_used": 1,
+  "aai_session_id": "sess_76253d3c9c9e4f2288868d44c33ed8a9",
+  "status": "ended",
+  "verdict": "PASS",
+  "reason": "Identity, 3 of 3 ledger checks, and readback confirmed.",
+  "started_at": "2026-09-24T22:53:26.149Z",
+  "ended_at": "2026-09-24T22:55:05.883Z",
+  "evidence_sha256": "d17939c156d59c782fe722168837804fffcdae98df12b00a7b10052eba11ffcf"
+ },
+ "vendor": {
+  "id": "v_northwind",
+  "name": "Northwind Steel",
+  "contact_name": "Jide Okafor",
+  "contact_phone": "+1 512 555 0142"
+ },
+ "request": {
+  "id": "req_northwind",
+  "vendor_id": "v_northwind",
+  "payment_id": "pay_northwind",
+  "received_at": "2026-09-24T18:05:24.289Z",
+  "channel": "email",
+  "new_bank_name": "Chase",
+  "new_account_last4": "8841",
+  "callback_contact": "+1 512 555 0199",
+  "status": "verified"
+ },
+ "payment": {
+  "id": "pay_northwind",
+  "vendor_id": "v_northwind",
+  "amount_cents": 18420000,
+  "due_on": "2026-09-27",
+  "status": "released",
+  "destination_last4": "8841"
+ },
+ "on_file": {
+  "bank_name": "First Citizens Bank",
+  "account_last4": "2209"
+ },
+ "provenance": [
+  {
+   "key": "number_age",
+   "label": "Number of record age",
+   "status": "ok",
+   "detail": "On file since 2025-03-11 (562 days)."
+  },
+  {
+   "key": "recent_contact_change",
+   "label": "Contact changed in last 30 days",
+   "status": "ok",
+   "detail": "No contact changes."
+  },
+  {
+   "key": "request_callback_ignored",
+   "label": "Callback contact from the request",
+   "status": "info",
+   "detail": "+1 512 555 0199 came with the request. Not used."
+  }
+ ],
+ "labels": {
+  "identity": "Identity",
+  "requested": "Vendor confirms the request",
+  "readback": "Readback of new account",
+  "q1": "INV-4471 total",
+  "q2": "INV-4502 total",
+  "q3": "INV-4502 payment date"
+ },
+ "checks": [
+  {
+   "run_id": "run_acfbdd63",
+   "key": "identity",
+   "status": "pass",
+   "expected": null,
+   "heard": "Jide Okafor at Northwind Steel"
+  },
+  {
+   "run_id": "run_acfbdd63",
+   "key": "requested",
+   "status": "pass",
+   "expected": null,
+   "heard": "Confirmed they moved operating account to Chase last month."
+  },
+  {
+   "run_id": "run_acfbdd63",
+   "key": "q1",
+   "status": "pass",
+   "expected": "96325.00",
+   "heard": "96,325.00"
+  },
+  {
+   "run_id": "run_acfbdd63",
+   "key": "q2",
+   "status": "pass",
+   "expected": "127400.00",
+   "heard": "127,400.00"
+  },
+  {
+   "run_id": "run_acfbdd63",
+   "key": "q3",
+   "status": "pass",
+   "expected": "2026-09-12",
+   "heard": "September 12th"
+  },
+  {
+   "run_id": "run_acfbdd63",
+   "key": "readback",
+   "status": "pass",
+   "expected": null,
+   "heard": "confirmed"
+  }
+ ],
+ "events": [
+  {
+   "t_ms": 4,
+   "kind": "state",
+   "payload": {
+    "state": "ringing",
+    "numberOfRecord": "+1 512 555 0142",
+    "provenance": [
+     {
+      "key": "number_age",
+      "label": "Number of record age",
+      "status": "ok",
+      "detail": "On file since 2025-03-11 (562 days)."
+     },
+     {
+      "key": "recent_contact_change",
+      "label": "Contact changed in last 30 days",
+      "status": "ok",
+      "detail": "No contact changes."
+     },
+     {
+      "key": "request_callback_ignored",
+      "label": "Callback contact from the request",
+      "status": "info",
+      "detail": "+1 512 555 0199 came with the request. Not used."
+     }
+    ]
+   }
+  },
+  {
+   "t_ms": 52,
+   "kind": "state",
+   "payload": {
+    "state": "answered",
+    "channel": "browser"
+   }
+  },
+  {
+   "t_ms": 53,
+   "kind": "state",
+   "payload": {
+    "state": "connecting"
+   }
+  },
+  {
+   "t_ms": 393,
+   "kind": "state",
+   "payload": {
+    "state": "ready",
+    "sessionId": "sess_76253d3c9c9e4f2288868d44c33ed8a9"
+   }
+  },
+  {
+   "t_ms": 9827,
+   "kind": "agent",
+   "payload": {
+    "text": "Hi, this is the automated payments assistant from Acme Manufacturing accounts payable. This call is recorded. Is this Jide Okafor at Northwind Steel?",
+    "interrupted": false
+   }
+  },
+  {
+   "t_ms": 17165,
+   "kind": "vendor",
+   "payload": {
+    "text": "Yes, this is Jide Okafor at Northwind Steel.",
+    "final": true,
+    "itemId": "msg_6b6fe2930df84b999590a7f2093c9702"
+   }
+  },
+  {
+   "t_ms": 18190,
+   "kind": "tool",
+   "payload": {
+    "name": "confirm_identity",
+    "args": {
+     "company": "Northwind Steel",
+     "confirmed_by_caller": true,
+     "name": "Jide Okafor"
+    }
+   }
+  },
+  {
+   "t_ms": 18191,
+   "kind": "check",
+   "payload": {
+    "check": {
+     "key": "identity",
+     "label": "Identity confirmed",
+     "status": "pass",
+     "heard": "Jide Okafor at Northwind Steel"
+    }
+   }
+  },
+  {
+   "t_ms": 28555,
+   "kind": "agent",
+   "payload": {
+    "text": "Thanks. This is a quick routine check to make sure your payments go to the right place. We got a request to change the bank account we pay Northwind Steel. Did your team ask for that change?",
+    "interrupted": false
+   }
+  },
+  {
+   "t_ms": 34878,
+   "kind": "vendor",
+   "payload": {
+    "text": "Yes, we did. We moved our operating account to Chase last month.",
+    "final": true,
+    "itemId": "msg_166bc91043e14852879e86d03bc702aa"
+   }
+  },
+  {
+   "t_ms": 36551,
+   "kind": "tool",
+   "payload": {
+    "name": "record_request_status",
+    "args": {
+     "note": "Confirmed they moved operating account to Chase last month.",
+     "vendor_says_requested": true
+    }
+   }
+  },
+  {
+   "t_ms": 36552,
+   "kind": "check",
+   "payload": {
+    "check": {
+     "key": "requested",
+     "label": "Vendor confirms the request",
+     "status": "pass",
+     "heard": "Confirmed they moved operating account to Chase last month."
+    }
+   }
+  },
+  {
+   "t_ms": 46007,
+   "kind": "agent",
+   "payload": {
+    "text": "Great. I just have three quick questions from our records. What was the total amount on invoice INV-4471?",
+    "interrupted": false
+   }
+  },
+  {
+   "t_ms": 53654,
+   "kind": "vendor",
+   "payload": {
+    "text": "That one was $96,325.",
+    "final": true,
+    "itemId": "msg_e04ed61e5afe408283e49e4d91aa62b7"
+   }
+  },
+  {
+   "t_ms": 54766,
+   "kind": "tool",
+   "payload": {
+    "name": "check_challenge",
+    "args": {
+     "answer": "96,325.00",
+     "question_id": "q1"
+    }
+   }
+  },
+  {
+   "t_ms": 54767,
+   "kind": "check",
+   "payload": {
+    "check": {
+     "key": "q1",
+     "label": "INV-4471 total",
+     "status": "pass",
+     "heard": "96,325.00"
+    }
+   }
+  },
+  {
+   "t_ms": 59895,
+   "kind": "agent",
+   "payload": {
+    "text": "What was the total amount on invoice INV-4502?",
+    "interrupted": false
+   }
+  },
+  {
+   "t_ms": 66451,
+   "kind": "vendor",
+   "payload": {
+    "text": "$127,400.",
+    "final": true,
+    "itemId": "msg_7d66f6c57020465bb4f5659f499cff00"
+   }
+  },
+  {
+   "t_ms": 67302,
+   "kind": "tool",
+   "payload": {
+    "name": "check_challenge",
+    "args": {
+     "answer": "127,400.00",
+     "question_id": "q2"
+    }
+   }
+  },
+  {
+   "t_ms": 67302,
+   "kind": "check",
+   "payload": {
+    "check": {
+     "key": "q2",
+     "label": "INV-4502 total",
+     "status": "pass",
+     "heard": "127,400.00"
+    }
+   }
+  },
+  {
+   "t_ms": 73109,
+   "kind": "agent",
+   "payload": {
+    "text": "On what date did you receive our payment for invoice INV-4502?",
+    "interrupted": false
+   }
+  },
+  {
+   "t_ms": 79550,
+   "kind": "vendor",
+   "payload": {
+    "text": "We received it on September 12th.",
+    "final": true,
+    "itemId": "msg_05656a9a2a5c424fbc42795db14e5024"
+   }
+  },
+  {
+   "t_ms": 80337,
+   "kind": "tool",
+   "payload": {
+    "name": "check_challenge",
+    "args": {
+     "answer": "September 12th",
+     "question_id": "q3"
+    }
+   }
+  },
+  {
+   "t_ms": 80339,
+   "kind": "check",
+   "payload": {
+    "check": {
+     "key": "q3",
+     "label": "INV-4502 payment date",
+     "status": "pass",
+     "heard": "September 12th"
+    }
+   }
+  },
+  {
+   "t_ms": 87493,
+   "kind": "agent",
+   "payload": {
+    "text": "Last one. The request asks us to pay Chase, account ending 8 8 4 1. Is that right?",
+    "interrupted": false
+   }
+  },
+  {
+   "t_ms": 90875,
+   "kind": "vendor",
+   "payload": {
+    "text": "Yes, that's correct.",
+    "final": true,
+    "itemId": "msg_0372960acbc34ab2820d050f85f7385a"
+   }
+  },
+  {
+   "t_ms": 92559,
+   "kind": "tool",
+   "payload": {
+    "name": "confirm_readback",
+    "args": {
+     "confirmed": true
+    }
+   }
+  },
+  {
+   "t_ms": 92560,
+   "kind": "check",
+   "payload": {
+    "check": {
+     "key": "readback",
+     "label": "Readback of new account",
+     "status": "pass",
+     "heard": "confirmed"
+    }
+   }
+  },
+  {
+   "t_ms": 93204,
+   "kind": "tool",
+   "payload": {
+    "name": "finish_verification",
+    "args": {}
+   }
+  },
+  {
+   "t_ms": 93205,
+   "kind": "verdict",
+   "payload": {
+    "result": {
+     "verdict": "PASS",
+     "reason": "Identity, 3 of 3 ledger checks, and readback confirmed."
+    }
+   }
+  },
+  {
+   "t_ms": 99414,
+   "kind": "agent",
+   "payload": {
+    "text": "That's everything. Thanks for your help. Our accounts payable team will follow up by email. Have a good day.",
+    "interrupted": false
+   }
+  },
+  {
+   "t_ms": 99733,
+   "kind": "state",
+   "payload": {
+    "state": "ended",
+    "reason": "completed"
+   }
+  },
+  {
+   "t_ms": 99735,
+   "kind": "outcome",
+   "payload": {
+    "verdict": "PASS",
+    "reason": "Identity, 3 of 3 ledger checks, and readback confirmed.",
+    "endReason": "completed",
+    "finished": true,
+    "payment": "released"
+   }
+  }
+ ],
+ "levels": [
+  0,
+  0.9,
+  0.489,
+  0.593,
+  0.401,
+  0.424,
+  0.326,
+  0.505,
+  0.534,
+  0.641,
+  0.808,
+  0.364,
+  0.501,
+  0.594,
+  0.636,
+  0.551,
+  0,
+  0.007,
+  0.629,
+  0.43,
+  0.403,
+  0.394,
+  0.16,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0.696,
+  0.489,
+  0.565,
+  0.435,
+  0.4,
+  0.498,
+  0.474,
+  0.319,
+  0.809,
+  0.406,
+  0.4,
+  0.379,
+  0.453,
+  0.491,
+  0.5,
+  0.339,
+  0,
+  0.002,
+  0.421,
+  0.227,
+  0.609,
+  0.429,
+  0.336,
+  0.376,
+  0.237,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0.189,
+  0.536,
+  0.584,
+  0.527,
+  0.458,
+  0.487,
+  0.766,
+  0.681,
+  0.657,
+  0.492,
+  0.495,
+  0.509,
+  0.475,
+  0.293,
+  0.001,
+  0.02,
+  0.506,
+  0.542,
+  0.413,
+  0.309,
+  0.259,
+  0.058,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0.889,
+  0.683,
+  0.603,
+  0.592,
+  0.513,
+  0.655,
+  0.49,
+  0.095,
+  0.001,
+  0.551,
+  0.409,
+  0.359,
+  0.236,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0.763,
+  0.708,
+  0.599,
+  0.441,
+  0.665,
+  0.664,
+  0.67,
+  0.489,
+  0.272,
+  0,
+  0.007,
+  0.522,
+  0.487,
+  0.394,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0.592,
+  0.311,
+  0.414,
+  0.813,
+  0.578,
+  0.528,
+  0.395,
+  0.466,
+  0.476,
+  0.752,
+  0.755,
+  0.002,
+  0.47,
+  0.246,
+  0.018,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0.418,
+  0.608,
+  0.467,
+  0.523,
+  0.725,
+  0.701,
+  0.807,
+  0.57,
+  0.665,
+  0.332
+ ],
+ "sha256": "d17939c156d59c782fe722168837804fffcdae98df12b00a7b10052eba11ffcf",
+ "median_response_ms": 1960,
+ "record": {
+  "kovrell_evidence_version": 1,
+  "run": {
+   "id": "run_acfbdd63",
+   "request_id": "req_northwind",
+   "channel": "browser",
+   "token_expires_at": "2026-09-24T23:08:26.149Z",
+   "token_used": 1,
+   "aai_session_id": "sess_76253d3c9c9e4f2288868d44c33ed8a9",
+   "status": "ended",
+   "verdict": "PASS",
+   "reason": "Identity, 3 of 3 ledger checks, and readback confirmed.",
+   "started_at": "2026-09-24T22:53:26.149Z",
+   "ended_at": "2026-09-24T22:55:05.883Z",
+   "evidence_sha256": "af725a10ae24b7dc8821fc14ead0400a12d008f09af86ceb3f0136006cf9cbf8"
+  },
+  "request": {
+   "id": "req_northwind",
+   "vendor_id": "v_northwind",
+   "payment_id": "pay_northwind",
+   "received_at": "2026-09-24T18:05:24.289Z",
+   "channel": "email",
+   "new_bank_name": "Chase",
+   "new_account_last4": "8841",
+   "callback_contact": "+1 512 555 0199",
+   "status": "verified"
+  },
+  "vendor": {
+   "id": "v_northwind",
+   "name": "Northwind Steel",
+   "contact_name": "Jide Okafor",
+   "contact_of_record": "+1 512 555 0142",
+   "bank_on_file": "First Citizens Bank ending 2209"
+  },
+  "provenance_at_call": [
+   {
+    "key": "number_age",
+    "label": "Number of record age",
+    "status": "ok",
+    "detail": "On file since 2025-03-11 (562 days)."
+   },
+   {
+    "key": "recent_contact_change",
+    "label": "Contact changed in last 30 days",
+    "status": "ok",
+    "detail": "No contact changes."
+   },
+   {
+    "key": "request_callback_ignored",
+    "label": "Callback contact from the request",
+    "status": "info",
+    "detail": "+1 512 555 0199 came with the request. Not used."
+   }
+  ],
+  "checks": [
+   {
+    "run_id": "run_acfbdd63",
+    "key": "identity",
+    "status": "pass",
+    "expected": null,
+    "heard": "Jide Okafor at Northwind Steel"
+   },
+   {
+    "run_id": "run_acfbdd63",
+    "key": "requested",
+    "status": "pass",
+    "expected": null,
+    "heard": "Confirmed they moved operating account to Chase last month."
+   },
+   {
+    "run_id": "run_acfbdd63",
+    "key": "q1",
+    "status": "pass",
+    "expected": "96325.00",
+    "heard": "96,325.00"
+   },
+   {
+    "run_id": "run_acfbdd63",
+    "key": "q2",
+    "status": "pass",
+    "expected": "127400.00",
+    "heard": "127,400.00"
+   },
+   {
+    "run_id": "run_acfbdd63",
+    "key": "q3",
+    "status": "pass",
+    "expected": "2026-09-12",
+    "heard": "September 12th"
+   },
+   {
+    "run_id": "run_acfbdd63",
+    "key": "readback",
+    "status": "pass",
+    "expected": null,
+    "heard": "confirmed"
+   }
+  ],
+  "events": [
+   {
+    "t_ms": 4,
+    "kind": "state",
+    "payload": {
+     "state": "ringing",
+     "numberOfRecord": "+1 512 555 0142",
+     "provenance": [
+      {
+       "key": "number_age",
+       "label": "Number of record age",
+       "status": "ok",
+       "detail": "On file since 2025-03-11 (562 days)."
+      },
+      {
+       "key": "recent_contact_change",
+       "label": "Contact changed in last 30 days",
+       "status": "ok",
+       "detail": "No contact changes."
+      },
+      {
+       "key": "request_callback_ignored",
+       "label": "Callback contact from the request",
+       "status": "info",
+       "detail": "+1 512 555 0199 came with the request. Not used."
+      }
+     ]
+    }
+   },
+   {
+    "t_ms": 52,
+    "kind": "state",
+    "payload": {
+     "state": "answered",
+     "channel": "browser"
+    }
+   },
+   {
+    "t_ms": 53,
+    "kind": "state",
+    "payload": {
+     "state": "connecting"
+    }
+   },
+   {
+    "t_ms": 393,
+    "kind": "state",
+    "payload": {
+     "state": "ready",
+     "sessionId": "sess_76253d3c9c9e4f2288868d44c33ed8a9"
+    }
+   },
+   {
+    "t_ms": 9827,
+    "kind": "agent",
+    "payload": {
+     "text": "Hi, this is the automated payments assistant from Acme Manufacturing accounts payable. This call is recorded. Is this Jide Okafor at Northwind Steel?",
+     "interrupted": false
+    }
+   },
+   {
+    "t_ms": 17165,
+    "kind": "vendor",
+    "payload": {
+     "text": "Yes, this is Jide Okafor at Northwind Steel.",
+     "final": true,
+     "itemId": "msg_6b6fe2930df84b999590a7f2093c9702"
+    }
+   },
+   {
+    "t_ms": 18190,
+    "kind": "tool",
+    "payload": {
+     "name": "confirm_identity",
+     "args": {
+      "company": "Northwind Steel",
+      "confirmed_by_caller": true,
+      "name": "Jide Okafor"
+     }
+    }
+   },
+   {
+    "t_ms": 18191,
+    "kind": "check",
+    "payload": {
+     "check": {
+      "key": "identity",
+      "label": "Identity confirmed",
+      "status": "pass",
+      "heard": "Jide Okafor at Northwind Steel"
+     }
+    }
+   },
+   {
+    "t_ms": 28555,
+    "kind": "agent",
+    "payload": {
+     "text": "Thanks. This is a quick routine check to make sure your payments go to the right place. We got a request to change the bank account we pay Northwind Steel. Did your team ask for that change?",
+     "interrupted": false
+    }
+   },
+   {
+    "t_ms": 34878,
+    "kind": "vendor",
+    "payload": {
+     "text": "Yes, we did. We moved our operating account to Chase last month.",
+     "final": true,
+     "itemId": "msg_166bc91043e14852879e86d03bc702aa"
+    }
+   },
+   {
+    "t_ms": 36551,
+    "kind": "tool",
+    "payload": {
+     "name": "record_request_status",
+     "args": {
+      "note": "Confirmed they moved operating account to Chase last month.",
+      "vendor_says_requested": true
+     }
+    }
+   },
+   {
+    "t_ms": 36552,
+    "kind": "check",
+    "payload": {
+     "check": {
+      "key": "requested",
+      "label": "Vendor confirms the request",
+      "status": "pass",
+      "heard": "Confirmed they moved operating account to Chase last month."
+     }
+    }
+   },
+   {
+    "t_ms": 46007,
+    "kind": "agent",
+    "payload": {
+     "text": "Great. I just have three quick questions from our records. What was the total amount on invoice INV-4471?",
+     "interrupted": false
+    }
+   },
+   {
+    "t_ms": 53654,
+    "kind": "vendor",
+    "payload": {
+     "text": "That one was $96,325.",
+     "final": true,
+     "itemId": "msg_e04ed61e5afe408283e49e4d91aa62b7"
+    }
+   },
+   {
+    "t_ms": 54766,
+    "kind": "tool",
+    "payload": {
+     "name": "check_challenge",
+     "args": {
+      "answer": "96,325.00",
+      "question_id": "q1"
+     }
+    }
+   },
+   {
+    "t_ms": 54767,
+    "kind": "check",
+    "payload": {
+     "check": {
+      "key": "q1",
+      "label": "INV-4471 total",
+      "status": "pass",
+      "heard": "96,325.00"
+     }
+    }
+   },
+   {
+    "t_ms": 59895,
+    "kind": "agent",
+    "payload": {
+     "text": "What was the total amount on invoice INV-4502?",
+     "interrupted": false
+    }
+   },
+   {
+    "t_ms": 66451,
+    "kind": "vendor",
+    "payload": {
+     "text": "$127,400.",
+     "final": true,
+     "itemId": "msg_7d66f6c57020465bb4f5659f499cff00"
+    }
+   },
+   {
+    "t_ms": 67302,
+    "kind": "tool",
+    "payload": {
+     "name": "check_challenge",
+     "args": {
+      "answer": "127,400.00",
+      "question_id": "q2"
+     }
+    }
+   },
+   {
+    "t_ms": 67302,
+    "kind": "check",
+    "payload": {
+     "check": {
+      "key": "q2",
+      "label": "INV-4502 total",
+      "status": "pass",
+      "heard": "127,400.00"
+     }
+    }
+   },
+   {
+    "t_ms": 73109,
+    "kind": "agent",
+    "payload": {
+     "text": "On what date did you receive our payment for invoice INV-4502?",
+     "interrupted": false
+    }
+   },
+   {
+    "t_ms": 79550,
+    "kind": "vendor",
+    "payload": {
+     "text": "We received it on September 12th.",
+     "final": true,
+     "itemId": "msg_05656a9a2a5c424fbc42795db14e5024"
+    }
+   },
+   {
+    "t_ms": 80337,
+    "kind": "tool",
+    "payload": {
+     "name": "check_challenge",
+     "args": {
+      "answer": "September 12th",
+      "question_id": "q3"
+     }
+    }
+   },
+   {
+    "t_ms": 80339,
+    "kind": "check",
+    "payload": {
+     "check": {
+      "key": "q3",
+      "label": "INV-4502 payment date",
+      "status": "pass",
+      "heard": "September 12th"
+     }
+    }
+   },
+   {
+    "t_ms": 87493,
+    "kind": "agent",
+    "payload": {
+     "text": "Last one. The request asks us to pay Chase, account ending 8 8 4 1. Is that right?",
+     "interrupted": false
+    }
+   },
+   {
+    "t_ms": 90875,
+    "kind": "vendor",
+    "payload": {
+     "text": "Yes, that's correct.",
+     "final": true,
+     "itemId": "msg_0372960acbc34ab2820d050f85f7385a"
+    }
+   },
+   {
+    "t_ms": 92559,
+    "kind": "tool",
+    "payload": {
+     "name": "confirm_readback",
+     "args": {
+      "confirmed": true
+     }
+    }
+   },
+   {
+    "t_ms": 92560,
+    "kind": "check",
+    "payload": {
+     "check": {
+      "key": "readback",
+      "label": "Readback of new account",
+      "status": "pass",
+      "heard": "confirmed"
+     }
+    }
+   },
+   {
+    "t_ms": 93204,
+    "kind": "tool",
+    "payload": {
+     "name": "finish_verification",
+     "args": {}
+    }
+   },
+   {
+    "t_ms": 93205,
+    "kind": "verdict",
+    "payload": {
+     "result": {
+      "verdict": "PASS",
+      "reason": "Identity, 3 of 3 ledger checks, and readback confirmed."
+     }
+    }
+   },
+   {
+    "t_ms": 99414,
+    "kind": "agent",
+    "payload": {
+     "text": "That's everything. Thanks for your help. Our accounts payable team will follow up by email. Have a good day.",
+     "interrupted": false
+    }
+   },
+   {
+    "t_ms": 99733,
+    "kind": "state",
+    "payload": {
+     "state": "ended",
+     "reason": "completed"
+    }
+   },
+   {
+    "t_ms": 99735,
+    "kind": "outcome",
+    "payload": {
+     "verdict": "PASS",
+     "reason": "Identity, 3 of 3 ledger checks, and readback confirmed.",
+     "endReason": "completed",
+     "finished": true,
+     "payment": "released"
+    }
+   }
+  ],
+  "provider": {
+   "name": "AssemblyAI Voice Agent API",
+   "session_id": "sess_76253d3c9c9e4f2288868d44c33ed8a9",
+   "timeline_turns": 14
+  }
+ }
+}
