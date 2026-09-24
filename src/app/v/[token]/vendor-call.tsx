@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Arrow, PRIMARY, SECONDARY } from "@/components/button";
+import { Wordmark } from "@/components/mark";
+import { Waveform } from "@/components/waveform";
 
 type Phase = "ringing" | "connecting" | "live" | "ended" | "error";
 
@@ -64,6 +67,7 @@ export function VendorCall({ token, company, callerLine }: { token: string; comp
   const [phase, setPhase] = useState<Phase>("ringing");
   const [error, setError] = useState<string | null>(null);
   const [seconds, setSeconds] = useState(0);
+  const [levels, setLevels] = useState<number[]>(() => Array(48).fill(0));
   const cleanup = useRef<() => void>(() => {});
 
   useEffect(() => {
@@ -122,7 +126,14 @@ export function VendorCall({ token, company, callerLine }: { token: string; comp
 
     ws.onmessage = (e) => {
       const msg = JSON.parse(e.data);
-      if (msg.type === "audio") player.play(fromBase64Pcm16(msg.data));
+      if (msg.type === "audio") {
+        const samples = fromBase64Pcm16(msg.data);
+        player.play(samples);
+        let sum = 0;
+        for (const v of samples) sum += v * v;
+        const level = Math.min(1, Math.sqrt(sum / Math.max(1, samples.length)) * 3);
+        setLevels((prev) => [...prev.slice(1), level]);
+      }
       else if (msg.type === "flush") player.flush();
       else if (msg.type === "state" && msg.state === "live") setPhase("live");
       else if (msg.type === "state" && msg.state === "ended") finish("ended");
@@ -141,38 +152,46 @@ export function VendorCall({ token, company, callerLine }: { token: string; comp
   const mmss = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-8 px-4 py-12">
-      <div className="border border-rule bg-white/40 p-6">
-        <p className="font-mono text-xs tracking-[0.18em] text-muted">
-          {phase === "ringing" ? "INCOMING VERIFICATION CALL" : phase === "live" ? `ON CALL  ${mmss}` : phase.toUpperCase()}
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 py-10">
+      <Wordmark />
+      <div className="flex flex-1 flex-col justify-center py-12">
+        <p className={`label ${phase === "error" ? "text-ember" : "text-zinc"}`}>
+          {phase === "ringing"
+            ? "Incoming verification call"
+            : phase === "live"
+              ? `On call  ${mmss}`
+              : phase === "connecting"
+                ? "Connecting"
+                : phase === "ended"
+                  ? "Call ended"
+                  : "Call could not connect"}
         </p>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight">{company} accounts payable</h1>
-        <p className="mt-2 text-sm text-muted">{callerLine}</p>
+        <h1 className="heading mt-4 text-[40px]">{company}</h1>
+        <p className="mt-1 text-[18px] text-mercury">accounts payable</p>
+        <p className="mt-6 text-bone">{callerLine}. About two minutes.</p>
 
-        {phase === "ringing" && (
-          <div className="mt-8 flex gap-3">
-            <button onClick={answer} className="h-10 flex-1 rounded-md bg-ink text-sm font-medium text-paper">
-              Answer
+        {(phase === "live" || phase === "connecting") && <Waveform levels={levels} height={48} className="mt-10 overflow-hidden" />}
+
+        <div className="mt-10">
+          {phase === "ringing" && (
+            <button onClick={answer} className={`${PRIMARY} w-full`}>
+              Answer <Arrow />
             </button>
-          </div>
-        )}
-        {(phase === "connecting" || phase === "live") && (
-          <div className="mt-8">
-            <p className="mb-4 text-sm">{phase === "connecting" ? "Connecting..." : "Speak normally. The agent can hear you."}</p>
-            <button
-              onClick={() => cleanup.current()}
-              className="h-10 w-full rounded-md border border-block text-sm font-medium text-block"
-            >
-              Hang up
-            </button>
-          </div>
-        )}
-        {phase === "ended" && <p className="mt-8 text-sm">Call ended. You can close this page.</p>}
-        {phase === "error" && <p className="mt-8 text-sm text-block">{error}</p>}
+          )}
+          {(phase === "connecting" || phase === "live") && (
+            <>
+              <p className="mb-5 text-mercury">{phase === "connecting" ? "Connecting to the verification agent." : "Speak normally. The agent can hear you."}</p>
+              <button onClick={() => cleanup.current()} className={`${SECONDARY} w-full`}>
+                Hang up
+              </button>
+            </>
+          )}
+          {phase === "ended" && <p className="text-mercury">Thanks. You can close this page.</p>}
+          {phase === "error" && <p className="text-ember">{error}</p>}
+        </div>
       </div>
-      <p className="text-xs text-muted">
-        This is an automated call. It is recorded for payment verification. {company} will never ask for passwords or
-        card numbers.
+      <p className="border-t border-iron pt-5 text-[13px] text-zinc">
+        This call is automated and recorded. {company} will never ask for passwords or card numbers.
       </p>
     </main>
   );

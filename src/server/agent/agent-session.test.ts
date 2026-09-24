@@ -158,6 +158,20 @@ describe("AgentSession", () => {
     expect(provider.received.some((m) => m.type === "session.end")).toBe(true);
   });
 
+  it("sends the hold-mode finish result at once, without waiting for reply.done", async () => {
+    provider = fakeProvider();
+    const agent = makeSession(provider.url);
+    agent.start();
+    await provider.connected;
+    provider.send({ type: "session.ready", session_id: "sess_5" });
+    provider.send({ type: "input.speech.started" });
+    provider.send({ type: "tool.call", call_id: "c7", name: "finish_verification", arguments: {} });
+    await tick();
+    const result = provider.received.find((m) => m.type === "tool.result");
+    expect(result?.call_id).toBe("c7");
+    agent.end("test");
+  });
+
   it("fails closed with INCONCLUSIVE when the provider rejects the session", async () => {
     provider = fakeProvider();
     const agent = makeSession(provider.url);

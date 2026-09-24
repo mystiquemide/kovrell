@@ -1,6 +1,6 @@
 import type { Run, StoredCheck, Store } from "./store";
 import { buildChallenges } from "./verification/challenges";
-import { preflight } from "./verification/provenance";
+import { preflight, PROVENANCE_WINDOW_DAYS } from "./verification/provenance";
 
 /** Checks as the AP team sees them. Expected ledger values stay out; they belong to the evidence pack. */
 export function publicChecks(checks: StoredCheck[]) {
@@ -12,6 +12,33 @@ export function publicRun(run: Run) {
   const rest: Partial<Run> = { ...run };
   delete rest.call_token;
   return rest as Omit<Run, "call_token">;
+}
+
+/** Human labels for every check key on a run, including the per-request ledger questions. */
+export function checkLabels(detail: NonNullable<ReturnType<Store["getRequestDetail"]>>): Record<string, string> {
+  const labels: Record<string, string> = {
+    identity: "Identity",
+    requested: "Vendor confirms the request",
+    readback: "Readback of new account",
+  };
+  try {
+    for (const c of buildChallenges(detail)) labels[c.id] = c.label;
+  } catch {
+    // Vendors without enough paid invoices cannot be called, so there are no question labels.
+  }
+  return labels;
+}
+
+export function vendorView(store: Store, id: string, now = Date.now()) {
+  const data = store.getVendor(id);
+  if (!data) return null;
+  return {
+    vendor: data.vendor,
+    changes: data.changes.map((c) => ({
+      ...c,
+      recent: c.old_value !== null && now - Date.parse(c.changed_at) < PROVENANCE_WINDOW_DAYS * 86_400_000,
+    })),
+  };
 }
 
 export function inboxView(store: Store, now = Date.now()) {
@@ -38,6 +65,7 @@ export function evidenceView(store: Store, id: string) {
   return {
     run: publicRun(run),
     vendor: { id: detail.vendor.id, name: detail.vendor.name, contact_name: detail.vendor.contact_name, contact_phone: detail.vendor.contact_phone },
+    labels: checkLabels(detail),
     request: detail.request,
     payment: detail.payment,
     // Expected ledger values are shown here only, for auditors.
@@ -77,6 +105,12 @@ export function requestView(store: Store, id: string, now = Date.now()) {
     challenges,
     latestRun: run ? publicRun(run) : null,
     runs: store.listRunsForRequest(id).map(publicRun),
+    /** A run that can still be answered or is on the line right now. */
+    openRunId:
+      store
+        .listRunsForRequest(id)
+        .find((r) => r.status === "live" || (r.status === "ringing" && !r.token_used && Date.parse(r.token_expires_at) >= now))?.id ?? null,
+    dueInDays: Math.ceil((Date.parse(`${payment.due_on.slice(0, 10)}T00:00:00Z`) - now) / 86_400_000),
   };
 }
 
@@ -86,6 +120,7 @@ export function runView(store: Store, id: string) {
   const detail = store.getRequestDetail(run.request_id)!;
   return {
     run: publicRun(run),
+    labels: checkLabels(detail),
     request: detail.request,
     vendor: { id: detail.vendor.id, name: detail.vendor.name, contact_name: detail.vendor.contact_name, contact_phone: detail.vendor.contact_phone },
     payment: detail.payment,

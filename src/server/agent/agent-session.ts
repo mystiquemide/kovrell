@@ -8,6 +8,10 @@ export const AAI_WS_URL = "wss://agents.assemblyai.com/v1/ws";
 export const MAX_CALL_MS = 6 * 60 * 1000;
 const READY_TIMEOUT_MS = 12_000;
 
+/** Hold-mode tools: the agent goes silent and there may be no reply.done, so results go out at once. */
+export const HOLD_TOOLS = new Set(["finish_verification"]);
+const CLOSING_TIMEOUT_MS = 15_000;
+
 export const CLOSING_LINE = "That's everything. Thanks for your help. Our accounts payable team will follow up by email. Have a good day.";
 
 export type AgentEvent =
@@ -15,7 +19,6 @@ export type AgentEvent =
   | { kind: "agent"; text: string; interrupted: boolean }
   | { kind: "vendor"; text: string; final: boolean; itemId?: string }
   | { kind: "speech"; speaking: boolean }
-  | { kind: "reply"; state: "started" }
   | { kind: "tool"; name: string; args: Record<string, unknown> }
   | { kind: "check"; check: CheckState }
   | { kind: "verdict"; result: VerdictResult }
@@ -51,6 +54,7 @@ export class AgentSession {
   private ended = false;
   private finished = false;
   private awaitingClosing = false;
+  private closingReplyStarted = false;
   private closingSpoken = false;
   private lastEvent: string | null = null;
   private pendingResults: { call_id: string; result: string }[] = [];
@@ -154,7 +158,8 @@ export class AgentSession {
         break;
       case "transcript.agent":
         this.emit({ kind: "agent", text: e.text as string, interrupted: Boolean(e.interrupted) });
-        if (this.awaitingClosing) this.closingSpoken = true;
+        // Only speech from the reply that follows the closing result counts as the closing line.
+        if (this.closingReplyStarted) this.closingSpoken = true;
         break;
       case "transcript.user.delta":
         this.emit({ kind: "vendor", text: e.text as string, final: false, itemId: e.item_id as string });
@@ -172,7 +177,7 @@ export class AgentSession {
         this.runTool(e.call_id as string, e.name as string, (e.arguments ?? {}) as Record<string, unknown>);
         break;
       case "reply.started":
-        this.emit({ kind: "reply", state: "started" });
+        if (this.awaitingClosing) this.closingReplyStarted = true;
         break;
       case "reply.done":
         if (e.status === "interrupted") for (const cb of this.flushListeners) cb();
@@ -236,16 +241,27 @@ export class AgentSession {
     } catch (err) {
       result = { error: (err as Error).message };
     }
+    if (HOLD_TOOLS.has(name)) {
+      this.sendResult(callId, JSON.stringify(result));
+      return;
+    }
     this.pendingResults.push({ call_id: callId, result: JSON.stringify(result) });
     this.flushResults();
   }
 
   private flushResults() {
     if (this.lastEvent !== "reply.done" || this.ws?.readyState !== WebSocket.OPEN) return;
-    for (const r of this.pendingResults.splice(0)) {
-      this.ws.send(JSON.stringify({ type: "tool.result", call_id: r.call_id, result: r.result }));
-      // Arm the hangup only once the agent has the closing line to speak.
-      if (r.result.includes('"closing_line"')) this.awaitingClosing = true;
+    for (const r of this.pendingResults.splice(0)) this.sendResult(r.call_id, r.result);
+  }
+
+  private sendResult(callId: string, result: string) {
+    if (this.ws?.readyState !== WebSocket.OPEN) return;
+    this.ws.send(JSON.stringify({ type: "tool.result", call_id: callId, result }));
+    // Arm the hangup only once the agent has the closing line to speak.
+    if (result.includes('"closing_line"')) {
+      this.awaitingClosing = true;
+      // If the closing line never arrives, end anyway so the run cannot hang live.
+      this.timers.push(setTimeout(() => this.end("completed"), CLOSING_TIMEOUT_MS));
     }
   }
 

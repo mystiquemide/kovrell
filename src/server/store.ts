@@ -165,6 +165,15 @@ export function createStore(db: Db) {
       return { request, vendor, payment, changes, invoices };
     },
 
+    listVendors(): (Vendor & { last_change_at: string | null })[] {
+      return db
+        .prepare(
+          `SELECT v.*, (SELECT MAX(changed_at) FROM vendor_changes c WHERE c.vendor_id = v.id) AS last_change_at
+           FROM vendors v ORDER BY v.name`,
+        )
+        .all() as (Vendor & { last_change_at: string | null })[];
+    },
+
     getVendor(id: string): { vendor: Vendor; changes: VendorChange[] } | null {
       const vendor = db.prepare("SELECT * FROM vendors WHERE id = ?").get(id) as Vendor | undefined;
       if (!vendor) return null;

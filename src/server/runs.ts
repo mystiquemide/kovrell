@@ -137,6 +137,12 @@ export class RunController {
     channel.onHangup((reason) => agent.end(reason));
     agent.onAudio((b64) => {
       meter.addAgent(rms(b64, channel.outputEncoding));
+      // Response time: vendor stopped speaking until the first agent audio the vendor can hear.
+      const live = this.live.get(run.id);
+      if (live?.speechEndedAt) {
+        live.responseGaps.push(this.now() - live.speechEndedAt);
+        live.speechEndedAt = null;
+      }
       channel.sendAudio(b64);
     });
     agent.onFlush(() => channel.flush());
@@ -169,6 +175,13 @@ export class RunController {
     return this.live.has(runId);
   }
 
+  /** Path of the vendor call link while it can still be answered, otherwise null. */
+  callPathFor(runId: string): string | null {
+    const run = this.opts.store.getRun(runId);
+    if (!run || run.token_used || run.status !== "ringing" || Date.parse(run.token_expires_at) < this.now()) return null;
+    return `/v/${run.call_token}`;
+  }
+
   /** AssemblyAI session reader for recording playback, or null when not configured. */
   get sessionFetcher() {
     return this.opts.fetchSession ?? null;
@@ -185,17 +198,10 @@ export class RunController {
       this.broadcast(runId, { type: "partial", text: e.text, itemId: e.itemId });
       return;
     }
-    // Response time: vendor stops speaking, agent reply starts. Measured here, not stored as events.
-    const live = this.live.get(runId);
+    // Speech events feed the response-time measurement only. They are not part of the record.
     if (e.kind === "speech") {
+      const live = this.live.get(runId);
       if (live && !e.speaking) live.speechEndedAt = this.now();
-      return;
-    }
-    if (e.kind === "reply") {
-      if (live?.speechEndedAt) {
-        live.responseGaps.push(this.now() - live.speechEndedAt);
-        live.speechEndedAt = null;
-      }
       return;
     }
     if (e.kind === "state" && e.state === "ready") {

@@ -1,36 +1,92 @@
 @import "tailwindcss";
 
-:root {
-  --ink: #0e1116;
-  --paper: #f4f2ec;
-  --rule-light: #d9d5ca;
-  --rule-dark: #262b33;
-  --muted: #6b6f76;
-  --hold: #d98e04;
-  --release: #1f7a4d;
-  --block: #b3261e;
-  --signal: #2f5bea;
+@theme {
+  --color-void: #0e0e13;
+  --color-carbon: #09090b;
+  --color-slab: #18181b;
+  --color-iron: #27272a;
+  --color-steel: #3f3f46;
+  --color-zinc: #71717a;
+  --color-mercury: #a1a1aa;
+  --color-bone: #f4f4f5;
+  --color-cream: #fffaea;
+  --color-mint: #62f6b5;
+  --color-ember: #e96b34;
+  --color-spec-blue: #4dcafa;
+  --color-spec-pink: #de94e2;
+  --color-spec-yellow: #ffdd03;
+  --color-spec-violet: #9977ff;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-panel: 5.6px;
 }
 
-@theme inline {
-  --color-ink: var(--ink);
-  --color-paper: var(--paper);
-  --color-rule: var(--rule-light);
-  --color-rule-dark: var(--rule-dark);
-  --color-muted: var(--muted);
-  --color-hold: var(--hold);
-  --color-release: var(--release);
-  --color-block: var(--block);
-  --color-signal: var(--signal);
-  --font-sans: var(--font-inter-tight);
-  --font-mono: var(--font-jetbrains-mono);
-  --radius-sm: 2px;
-  --radius-md: 4px;
+html {
+  background: var(--color-void);
+  color-scheme: dark;
 }
 
 body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-inter-tight), system-ui, sans-serif;
-  font-feature-settings: "tnum" 1;
+  background: var(--color-void);
+  color: var(--color-cream);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-cream);
+  color: var(--color-void);
+}
+
+/* Console label: mono, uppercase, wide tracking. */
+.label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.data {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.display {
+  font-weight: 300;
+  letter-spacing: -0.022em;
+  line-height: 1.05;
+}
+
+.heading {
+  font-weight: 300;
+  letter-spacing: -0.016em;
+  line-height: 1.2;
+}
+
+:focus-visible {
+  outline: 1px solid var(--color-cream);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    animation: reveal 400ms ease-out both;
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }

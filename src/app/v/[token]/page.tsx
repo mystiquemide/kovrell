@@ -1,3 +1,4 @@
+import { Wordmark } from "@/components/mark";
 import { getRunController } from "@/server/runs";
 import { VendorCall } from "./vendor-call";
 
@@ -10,9 +11,13 @@ export default async function VendorCallPage({ params }: PageProps<"/v/[token]">
 
   if (!inspected.ok) {
     return (
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-12">
-        <p className="font-mono text-xs tracking-[0.18em] text-muted">VERIFICATION CALL</p>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight">{inspected.reason}</h1>
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 py-10">
+        <Wordmark />
+        <div className="flex flex-1 flex-col justify-center py-12">
+          <p className="label text-zinc">Verification call</p>
+          <h1 className="heading mt-4 text-[32px]">{inspected.reason}</h1>
+          <p className="mt-3 text-mercury">If you expected a call from {company} accounts payable, they will contact you again.</p>
+        </div>
       </main>
     );
   }
