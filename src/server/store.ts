@@ -103,6 +103,25 @@ export interface StoredCheck {
   heard: string | null;
 }
 
+export type EvidenceStatus = "pending" | "sealed" | "unavailable";
+
+export interface EvidenceRow {
+  run_id: string;
+  levels: number[];
+  timeline: unknown | null;
+  audio_available: boolean;
+  median_response_ms: number | null;
+  record: unknown | null;
+  sha256: string | null;
+  status: EvidenceStatus;
+  updated_at: string;
+}
+
+export interface RunListRow extends Run {
+  vendor_name: string;
+  vendor_id: string;
+}
+
 export function createStore(db: Db) {
   const isEmpty = () => (db.prepare("SELECT COUNT(*) AS n FROM vendors").get() as { n: number }).n === 0;
 
@@ -115,7 +134,7 @@ export function createStore(db: Db) {
 
     reset(now = Date.now()) {
       db.transaction(() => {
-        for (const t of ["checks", "run_events", "runs", "requests", "payments", "invoices", "vendor_changes", "vendors"]) {
+        for (const t of ["evidence", "checks", "run_events", "runs", "requests", "payments", "invoices", "vendor_changes", "vendors"]) {
           db.prepare(`DELETE FROM ${t}`).run();
         }
         seedSampleLedger(db, now);
@@ -213,6 +232,88 @@ export function createStore(db: Db) {
 
     listChecks(runId: string): StoredCheck[] {
       return db.prepare("SELECT * FROM checks WHERE run_id = ? ORDER BY rowid ASC").all(runId) as StoredCheck[];
+    },
+
+    listRuns(): RunListRow[] {
+      return db
+        .prepare(
+          `SELECT runs.*, v.name AS vendor_name, v.id AS vendor_id FROM runs
+           JOIN requests r ON r.id = runs.request_id JOIN vendors v ON v.id = r.vendor_id
+           ORDER BY runs.started_at DESC`,
+        )
+        .all() as RunListRow[];
+    },
+
+    listRunsForRequest(requestId: string): Run[] {
+      return db.prepare("SELECT * FROM runs WHERE request_id = ? ORDER BY started_at DESC").all(requestId) as Run[];
+    },
+
+    saveEvidence(row: EvidenceRow) {
+      db.prepare(
+        `INSERT INTO evidence (run_id, levels_json, timeline_json, audio_available, median_response_ms, record_json, sha256, status, updated_at)
+         VALUES (@run_id, @levels_json, @timeline_json, @audio_available, @median_response_ms, @record_json, @sha256, @status, @updated_at)
+         ON CONFLICT(run_id) DO UPDATE SET levels_json = excluded.levels_json, timeline_json = excluded.timeline_json,
+           audio_available = excluded.audio_available, median_response_ms = excluded.median_response_ms,
+           record_json = excluded.record_json, sha256 = excluded.sha256, status = excluded.status, updated_at = excluded.updated_at`,
+      ).run({
+        run_id: row.run_id,
+        levels_json: JSON.stringify(row.levels),
+        timeline_json: row.timeline === null ? null : JSON.stringify(row.timeline),
+        audio_available: row.audio_available ? 1 : 0,
+        median_response_ms: row.median_response_ms,
+        record_json: row.record === null ? null : JSON.stringify(row.record),
+        sha256: row.sha256,
+        status: row.status,
+        updated_at: row.updated_at,
+      });
+    },
+
+    getEvidence(runId: string): EvidenceRow | null {
+      const r = db.prepare("SELECT * FROM evidence WHERE run_id = ?").get(runId) as
+        | {
+            run_id: string;
+            levels_json: string;
+            timeline_json: string | null;
+            audio_available: number;
+            median_response_ms: number | null;
+            record_json: string | null;
+            sha256: string | null;
+            status: EvidenceStatus;
+            updated_at: string;
+          }
+        | undefined;
+      if (!r) return null;
+      return {
+        run_id: r.run_id,
+        levels: JSON.parse(r.levels_json),
+        timeline: r.timeline_json ? JSON.parse(r.timeline_json) : null,
+        audio_available: r.audio_available === 1,
+        median_response_ms: r.median_response_ms,
+        record: r.record_json ? JSON.parse(r.record_json) : null,
+        sha256: r.sha256,
+        status: r.status,
+        updated_at: r.updated_at,
+      };
+    },
+
+    /** Median of per-run median response times across sealed runs, or null when none exist. */
+    measuredResponseMs(): number | null {
+      const rows = db
+        .prepare("SELECT median_response_ms AS m FROM evidence WHERE median_response_ms IS NOT NULL ORDER BY m")
+        .all() as { m: number }[];
+      if (!rows.length) return null;
+      return rows[Math.floor(rows.length / 2)].m;
+    },
+
+    /** Latest run with a stored recording, for the landing page. */
+    latestRecordedRun(): { run_id: string; levels: number[]; verdict: string | null } | null {
+      const r = db
+        .prepare(
+          `SELECT e.run_id, e.levels_json, runs.verdict FROM evidence e JOIN runs ON runs.id = e.run_id
+           WHERE e.audio_available = 1 ORDER BY runs.started_at DESC LIMIT 1`,
+        )
+        .get() as { run_id: string; levels_json: string; verdict: string | null } | undefined;
+      return r ? { run_id: r.run_id, levels: JSON.parse(r.levels_json), verdict: r.verdict } : null;
     },
 
     /** Adds a bank-change request against the vendor's next held or scheduled payment. */

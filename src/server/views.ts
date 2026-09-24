@@ -14,6 +14,49 @@ export function publicRun(run: Run) {
   return rest as Omit<Run, "call_token">;
 }
 
+export function inboxView(store: Store, now = Date.now()) {
+  return store.listInbox().map((row) => {
+    const detail = store.getRequestDetail(row.id)!;
+    return { ...row, locked: row.status === "held" && preflight(detail, now).locked };
+  });
+}
+
+export function runListView(store: Store) {
+  return store.listRuns().map((r) => {
+    const { call_token: _t, ...rest } = r;
+    void _t;
+    const ev = store.getEvidence(r.id);
+    return { ...rest, evidence_status: ev?.status ?? null, sha256: ev?.sha256 ?? null };
+  });
+}
+
+export function evidenceView(store: Store, id: string) {
+  const run = store.getRun(id);
+  if (!run) return null;
+  const ev = store.getEvidence(id);
+  const detail = store.getRequestDetail(run.request_id)!;
+  return {
+    run: publicRun(run),
+    vendor: { id: detail.vendor.id, name: detail.vendor.name, contact_name: detail.vendor.contact_name, contact_phone: detail.vendor.contact_phone },
+    request: detail.request,
+    payment: detail.payment,
+    // Expected ledger values are shown here only, for auditors.
+    checks: store.listChecks(id),
+    events: store.listEvents(id),
+    evidence: ev
+      ? {
+          status: ev.status,
+          sha256: ev.sha256,
+          levels: ev.levels,
+          audio_available: ev.audio_available,
+          median_response_ms: ev.median_response_ms,
+          updated_at: ev.updated_at,
+        }
+      : null,
+    record: ev?.record ?? null,
+  };
+}
+
 export function requestView(store: Store, id: string, now = Date.now()) {
   const detail = store.getRequestDetail(id);
   if (!detail) return null;
@@ -33,6 +76,7 @@ export function requestView(store: Store, id: string, now = Date.now()) {
     preflight: preflight(detail, now),
     challenges,
     latestRun: run ? publicRun(run) : null,
+    runs: store.listRunsForRequest(id).map(publicRun),
   };
 }
 

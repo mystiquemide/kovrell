@@ -15,6 +15,7 @@ export type AgentEvent =
   | { kind: "agent"; text: string; interrupted: boolean }
   | { kind: "vendor"; text: string; final: boolean; itemId?: string }
   | { kind: "speech"; speaking: boolean }
+  | { kind: "reply"; state: "started" }
   | { kind: "tool"; name: string; args: Record<string, unknown> }
   | { kind: "check"; check: CheckState }
   | { kind: "verdict"; result: VerdictResult }
@@ -169,6 +170,9 @@ export class AgentSession {
         break;
       case "tool.call":
         this.runTool(e.call_id as string, e.name as string, (e.arguments ?? {}) as Record<string, unknown>);
+        break;
+      case "reply.started":
+        this.emit({ kind: "reply", state: "started" });
         break;
       case "reply.done":
         if (e.status === "interrupted") for (const cb of this.flushListeners) cb();

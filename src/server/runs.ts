@@ -5,6 +5,8 @@ import type { CallChannel } from "./channels";
 import type { Run, RunEvent, Store } from "./store";
 import { buildChallenges, type Challenge } from "./verification/challenges";
 import { preflight } from "./verification/provenance";
+import { sealWithRetry, type FetchSession } from "./evidence";
+import { LevelMeter, rms } from "./levels";
 import { publicChecks, publicRun } from "./views";
 
 export const CALL_LINK_TTL_MS = 15 * 60 * 1000;
@@ -35,12 +37,21 @@ export interface RunControllerOptions {
   company: string;
   publicBaseUrl: string;
   agentFactory?: AgentFactory;
+  /** Reads AssemblyAI session artifacts after a call. Null disables evidence fetching (tests). */
+  fetchSession?: FetchSession | null;
   now?: () => number;
 }
+
+export const LEVEL_TICK_MS = 100;
 
 interface LiveRun {
   agent: AgentSession;
   channel: CallChannel;
+  meter: LevelMeter;
+  ticker: NodeJS.Timeout;
+  /** Vendor stopped speaking, waiting for the agent's reply to start. */
+  speechEndedAt: number | null;
+  responseGaps: number[];
 }
 
 /** Owns every verification run: creation, the live call, persistence, the ledger outcome, and watchers. */
@@ -77,7 +88,7 @@ export class RunController {
       started_at: new Date(started).toISOString(),
     };
     store.createRun(run);
-    this.record(run.id, "state", { state: "ringing", numberOfRecord: check.numberOfRecord });
+    this.record(run.id, "state", { state: "ringing", numberOfRecord: check.numberOfRecord, provenance: check.checks });
     return { run: store.getRun(run.id)!, callUrl: `${this.opts.publicBaseUrl}/v/${run.call_token}` };
   }
 
@@ -109,16 +120,25 @@ export class RunController {
       inputEncoding: channel.inputEncoding,
       outputEncoding: channel.outputEncoding,
     });
-    this.live.set(run.id, { agent, channel });
+    const meter = new LevelMeter();
+    // Live waveform: real audio levels, sent to watchers only. The series is kept for the evidence record.
+    const ticker = setInterval(() => this.broadcast(run.id, { type: "level", ...meter.tick() }), LEVEL_TICK_MS);
+    this.live.set(run.id, { agent, channel, meter, ticker, speechEndedAt: null, responseGaps: [] });
     store.updateRun(run.id, { status: "live" });
     for (const c of agent.verification.list()) {
       store.upsertCheck({ run_id: run.id, key: c.key, status: c.status, expected: expectedFor(c.key, challenges), heard: null });
     }
 
     channel.setState("connecting");
-    channel.onAudio((b64) => agent.sendAudio(b64));
+    channel.onAudio((b64) => {
+      meter.addVendor(rms(b64, channel.inputEncoding));
+      agent.sendAudio(b64);
+    });
     channel.onHangup((reason) => agent.end(reason));
-    agent.onAudio((b64) => channel.sendAudio(b64));
+    agent.onAudio((b64) => {
+      meter.addAgent(rms(b64, channel.outputEncoding));
+      channel.sendAudio(b64);
+    });
     agent.onFlush(() => channel.flush());
     agent.onEvent((e) => this.onAgentEvent(run.id, e, channel));
     agent.onEnd((r) => this.onEnd(run.id, r, channel));
@@ -149,6 +169,11 @@ export class RunController {
     return this.live.has(runId);
   }
 
+  /** AssemblyAI session reader for recording playback, or null when not configured. */
+  get sessionFetcher() {
+    return this.opts.fetchSession ?? null;
+  }
+
   hasLiveCalls() {
     return this.live.size > 0;
   }
@@ -160,7 +185,19 @@ export class RunController {
       this.broadcast(runId, { type: "partial", text: e.text, itemId: e.itemId });
       return;
     }
-    if (e.kind === "speech") return;
+    // Response time: vendor stops speaking, agent reply starts. Measured here, not stored as events.
+    const live = this.live.get(runId);
+    if (e.kind === "speech") {
+      if (live && !e.speaking) live.speechEndedAt = this.now();
+      return;
+    }
+    if (e.kind === "reply") {
+      if (live?.speechEndedAt) {
+        live.responseGaps.push(this.now() - live.speechEndedAt);
+        live.speechEndedAt = null;
+      }
+      return;
+    }
     if (e.kind === "state" && e.state === "ready") {
       store.updateRun(runId, { aai_session_id: e.sessionId ?? null });
       channel.setState("live");
@@ -197,7 +234,10 @@ export class RunController {
       payment: r.verdict.verdict === "PASS" ? "released" : r.verdict.verdict === "FAIL" ? "blocked" : "held",
     });
     channel.hangup(r.reason);
+    const live = this.live.get(runId);
+    if (live) clearInterval(live.ticker);
     this.live.delete(runId);
+    sealWithRetry(store, runId, live?.meter.series ?? [], this.opts.fetchSession ?? null, live?.responseGaps ?? []);
     for (const ws of this.watchers.get(runId) ?? []) ws.close(1000, "ended");
     this.watchers.delete(runId);
   }

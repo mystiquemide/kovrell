@@ -73,6 +73,17 @@ CREATE TABLE IF NOT EXISTS run_events (
   kind TEXT NOT NULL,
   payload_json TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS evidence (
+  run_id TEXT PRIMARY KEY REFERENCES runs(id),
+  levels_json TEXT NOT NULL,
+  timeline_json TEXT,
+  audio_available INTEGER NOT NULL DEFAULT 0,
+  median_response_ms INTEGER,
+  record_json TEXT,
+  sha256 TEXT,
+  status TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS checks (
   run_id TEXT NOT NULL REFERENCES runs(id),
   key TEXT NOT NULL,

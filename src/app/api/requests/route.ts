@@ -1,11 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { getStore } from "@/server/store";
+import { inboxView } from "@/server/views";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  return Response.json({ requests: getStore().listInbox() });
+  return Response.json({ requests: inboxView(getStore()) });
 }
 
 const CreateRequest = z.object({
