@@ -54,15 +54,6 @@ const CONTROLS: { title: string; body: string; icon: ReactNode }[] = [
   },
 ];
 
-const TECH = [
-  { name: "Next.js", icon: "nextdotjs", role: "App, API routes, and pages", href: "https://nextjs.org/" },
-  { name: "Node.js", icon: "nodedotjs", role: "Custom server holding every agent session", href: "https://nodejs.org/" },
-  { name: "React", icon: "react", role: "Live call screen and vendor softphone", href: "https://react.dev/" },
-  { name: "TypeScript", icon: "typescript", role: "Verification engine and fixed verdict rules", href: "https://www.typescriptlang.org/" },
-  { name: "SQLite", icon: "sqlite", role: "Ledger, runs, events, and sealed evidence", href: "https://sqlite.org/" },
-  { name: "Tailwind CSS", icon: "tailwindcss", role: "Design tokens and themes", href: "https://tailwindcss.com/" },
-];
-
 function ProductFrame({ image, children }: { image: string; children: ReactNode }) {
   return (
     <div className="relative min-w-0 overflow-hidden rounded-[14px]">
@@ -358,35 +349,21 @@ export default function Landing() {
                 Every call runs live on the AssemblyAI Voice Agent API. Nothing is simulated.
               </p>
             </div>
-            <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3">
+            <div className="min-w-0">
               <a
                 href="https://www.assemblyai.com/products/voice-agent-api"
                 target="_blank"
                 rel="noreferrer"
-                className="col-span-2 rounded-[10px] border border-line bg-canvas p-6 hover:border-line-strong sm:col-span-3"
+                className="block rounded-[10px] border border-line bg-canvas p-8 hover:border-line-strong"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/tech/assemblyai.svg" alt="AssemblyAI" width={161} height={28} className="h-7 w-auto" />
-                <p className="subheading mt-5 text-[20px] text-ink">Voice Agent API</p>
+                <img src="/tech/assemblyai.svg" alt="AssemblyAI" width={161} height={28} className="h-9 w-auto" />
+                <p className="subheading mt-6 text-[22px] text-ink">Voice Agent API</p>
                 <p className="mt-2 max-w-[640px] text-[15px] leading-[1.5] text-muted">
                   Universal-3.5 Pro speech-to-text, turn detection and barge-in, JSON Schema tool calls, the agent&apos;s voice, and the session
                   recording and timeline that seal each evidence pack.
                 </p>
               </a>
-              {TECH.map((t) => (
-                <a
-                  key={t.name}
-                  href={t.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-[10px] border border-line bg-canvas p-5 hover:border-line-strong"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/tech/${t.icon}.svg`} alt="" width={28} height={28} className="h-7 w-7" />
-                  <p className="subheading mt-4 text-[17px] text-ink">{t.name}</p>
-                  <p className="mt-1 text-[14px] leading-[1.45] text-muted">{t.role}</p>
-                </a>
-              ))}
             </div>
           </div>
         </section>
