@@ -85,54 +85,35 @@ function PlayGlyph({ playing }: { playing: boolean }) {
   );
 }
 
-/** Hero call card: the recorded verification call, playable, with its verdict. */
-export function HeroCall({ title, meta, levels, stamp }: { title: string; meta: string; levels: number[]; stamp: ReactNode }) {
-  const { playing, toggle, time, length, error, seek } = usePlayer();
+/** Hero call bar: which run, and a play control. */
+export function CallBar({ label }: { label: string }) {
+  const { playing, toggle, time, length, error } = usePlayer();
   return (
-    <div className="mx-auto w-full max-w-[760px] rounded-[20px] border border-line bg-white p-5 text-left sm:p-7">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="label text-subtle">Recorded verification call</p>
-          <p className="subheading mt-1.5 text-[18px] text-ink">{title}</p>
-          <p className="mt-0.5 text-[14px] text-muted">{meta}</p>
-        </div>
-        {stamp}
-      </div>
-      <div className="mt-6 flex items-center gap-4">
-        <button
-          onClick={toggle}
-          aria-label={playing ? "Pause the call" : "Play the call"}
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-ink text-canvas transition-opacity hover:opacity-85"
-        >
+    <div>
+      <div className="flex max-w-[560px] items-stretch overflow-hidden rounded-[12px] bg-black/60 text-white backdrop-blur-0">
+        <span className="flex min-w-0 flex-1 items-center truncate px-4 py-3.5 text-[16px] text-white/90 sm:text-[18px]">{label}</span>
+        <button onClick={toggle} className="flex shrink-0 items-center gap-2.5 bg-black px-4 font-display text-[16px] font-medium sm:px-5 sm:text-[18px]">
           <PlayGlyph playing={playing} />
-        </button>
-        <button
-          className="block min-w-0 flex-1 overflow-hidden text-left"
-          aria-label="Seek the recording"
-          onClick={(ev) => {
-            const r = ev.currentTarget.getBoundingClientRect();
-            seek((ev.clientX - r.left) / r.width);
-            if (!playing) toggle();
-          }}
-        >
-          <Waveform levels={levels} height={56} progress={time > 0 && length ? time / length : undefined} />
+          {playing ? "Pause" : "Play call"}
         </button>
       </div>
-      <p className="mt-4 text-[13px] text-subtle">
+      <p className="mt-2 pl-1 text-[13px] text-white/70">
         {time > 0 && length ? `${clock(time * 1000)} / ${clock(length * 1000)}. ` : ""}
-        {error ?? "Kovrell's agent is live on the AssemblyAI Voice Agent API. The vendor's answers are spoken by a scripted test caller."}
+        {error ?? "A real Kovrell verification call. Vendor answers spoken by a scripted test caller."}
       </p>
     </div>
   );
 }
 
-/** Text button that plays or pauses the same recording. */
-export function PlayCallButton({ className }: { className: string }) {
+/** Large play control for the mint band. */
+export function BandPlay() {
   const { playing, toggle } = usePlayer();
   return (
-    <button onClick={toggle} className={className}>
-      <PlayGlyph playing={playing} />
-      {playing ? "Pause the call" : "Play the call"}
+    <button onClick={toggle} className="flex items-center gap-3 font-display text-[28px] font-semibold tracking-[-0.04em] text-black sm:text-[40px]">
+      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black text-mint sm:h-12 sm:w-12">
+        <PlayGlyph playing={playing} />
+      </span>
+      {playing ? "Pause the call" : "Play the verification call"}
     </button>
   );
 }

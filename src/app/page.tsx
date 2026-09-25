@@ -1,11 +1,12 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Arrow, PRIMARY, SECONDARY } from "@/components/button";
+import { Arrow, ON_PHOTO_DARK, ON_PHOTO_LIGHT, PRIMARY, SECONDARY } from "@/components/button";
 import { Mark, Wordmark } from "@/components/mark";
 import { Stamp } from "@/components/stamp";
 import { clock, dateOnly, money } from "@/lib/format";
 import { SHOWCASE_AUDIO, SHOWCASE_RECORD, callLengthMs, checkTimeline, milestones, showcase, transcript } from "@/showcase";
-import { HeroCall, PlayCallButton, RecordingWave, ShowcasePlayer } from "./_landing/player";
+import { BandPlay, CallBar, RecordingWave, ShowcasePlayer } from "./_landing/player";
 import { ScrollLink } from "./_landing/scroll-link";
 
 const AFP_RELEASE =
@@ -53,17 +54,24 @@ const CONTROLS: { title: string; body: string; icon: ReactNode }[] = [
   },
 ];
 
-/** Section wrapper with the ledger rails: hairline column edges down the page. */
-function Rail({ children, className = "", id }: { children: ReactNode; className?: string; id?: string }) {
-  return (
-    <section id={id} className={`border-b border-line ${className}`}>
-      <div className="mx-auto max-w-[1200px] border-x border-line">{children}</div>
-    </section>
-  );
-}
+const TECH = [
+  { name: "Next.js", icon: "nextdotjs", role: "App, API routes, and pages", href: "https://nextjs.org/" },
+  { name: "Node.js", icon: "nodedotjs", role: "Custom server holding every agent session", href: "https://nodejs.org/" },
+  { name: "React", icon: "react", role: "Live call screen and vendor softphone", href: "https://react.dev/" },
+  { name: "TypeScript", icon: "typescript", role: "Verification engine and fixed verdict rules", href: "https://www.typescriptlang.org/" },
+  { name: "SQLite", icon: "sqlite", role: "Ledger, runs, events, and sealed evidence", href: "https://sqlite.org/" },
+  { name: "Tailwind CSS", icon: "tailwindcss", role: "Design tokens and themes", href: "https://tailwindcss.com/" },
+];
 
-function Panel({ children }: { children: ReactNode }) {
-  return <div className="overflow-hidden rounded-[14px] border border-line bg-white">{children}</div>;
+function ProductFrame({ image, children }: { image: string; children: ReactNode }) {
+  return (
+    <div className="relative min-w-0 overflow-hidden rounded-[14px]">
+      <Image src={image} alt="" fill sizes="(min-width: 1024px) 55vw, 100vw" className="object-cover" />
+      <div className="relative p-5 sm:p-10">
+        <div className="theme-dark overflow-hidden rounded-[10px] border border-line bg-canvas/95 text-ink">{children}</div>
+      </div>
+    </div>
+  );
 }
 
 export default function Landing() {
@@ -72,35 +80,27 @@ export default function Landing() {
   const checks = checkTimeline();
   const lines = transcript();
   const recordedOn = dateOnly(run.recorded_at);
-  const flow = [
-    { label: "Bank change email", note: "Request arrives", t: steps[0].t },
-    { label: "Payment held", note: money(run.payment.amount_cents), t: steps[0].t },
-    { label: "Number of record", note: "Provenance checked", t: steps[1].t },
-    { label: "Voice call", note: "AssemblyAI agent", t: steps[2].t },
-    { label: "Ledger challenge", note: "3 of 3 correct", t: steps[3].t },
-    { label: "Verified", note: "Payment released", t: steps[4].t },
-    { label: "Evidence sealed", note: "sha256", t: steps[5].t },
-  ];
+  const barLabel = `${run.vendor.name}, ${clock(callLengthMs())}, verified`;
 
   return (
     <ShowcasePlayer src={SHOWCASE_AUDIO}>
       <div className="flex flex-1 flex-col bg-canvas">
         {/* Nav */}
-        <header className="sticky top-0 z-30 border-b border-line bg-canvas/95 backdrop-blur-sm">
-          <div className="mx-auto flex h-[68px] max-w-[1200px] items-center justify-between border-x border-line px-4 sm:px-8">
+        <header className="sticky top-0 z-30 border-b border-line bg-canvas">
+          <div className="mx-auto flex h-[72px] max-w-[1280px] items-center justify-between px-4 sm:px-8">
             <Wordmark />
-            <nav className="hidden items-center gap-8 font-tight text-[15px] font-medium md:flex">
-              <ScrollLink to="how" className="text-muted hover:text-ink">
+            <nav className="hidden items-center gap-9 font-display text-[15px] font-medium md:flex">
+              <ScrollLink to="how" className="text-ink hover:text-subtle">
                 How it works
               </ScrollLink>
-              <ScrollLink to="evidence" className="text-muted hover:text-ink">
+              <ScrollLink to="evidence" className="text-ink hover:text-subtle">
                 Evidence
               </ScrollLink>
-              <ScrollLink to="numbers" className="text-muted hover:text-ink">
+              <ScrollLink to="numbers" className="text-ink hover:text-subtle">
                 Numbers
               </ScrollLink>
             </nav>
-            <Link href="/requests" className={PRIMARY}>
+            <Link href="/requests" className={SECONDARY}>
               <span className="sm:hidden">See it live</span>
               <span className="hidden sm:inline">See a live verification</span>
             </Link>
@@ -108,142 +108,125 @@ export default function Landing() {
         </header>
 
         {/* Hero */}
-        <Rail>
-          <div className="px-4 pb-16 pt-20 text-center sm:px-8 sm:pb-20 sm:pt-28">
-            <p className="eyebrow reveal text-subtle">Voice verification for vendor payments</p>
-            <h1 className="display reveal mx-auto mt-6 max-w-[900px] text-[52px] text-ink sm:text-[88px]">
-              Kovrell calls the vendor <em className="italic">before you pay.</em>
-            </h1>
-            <p className="reveal mx-auto mt-6 max-w-[580px] text-[18px] leading-[1.5] text-muted">
-              A voice agent verifies every bank-detail change on the vendor&apos;s number of record, asks what only the real vendor knows, and
-              holds the payment until it checks out.
+        <section className="relative isolate flex min-h-[640px] items-end overflow-hidden sm:min-h-[760px]">
+          <Image src="/images/forest-motion.jpg" alt="" fill priority sizes="100vw" className="-z-10 object-cover" />
+          <div className="absolute inset-0 -z-10 bg-black/35" />
+          <div className="mx-auto w-full max-w-[1280px] px-4 pb-16 pt-32 sm:px-8 sm:pb-24">
+            <h1 className="display reveal max-w-[760px] text-[48px] text-white sm:text-[80px]">Kovrell calls the vendor before you pay.</h1>
+            <p className="reveal mt-6 max-w-[560px] text-[18px] leading-[1.45] text-white/90">
+              A voice agent verifies every bank-detail change on the vendor&apos;s number of record, asks what only the real vendor knows,
+              and holds the payment until it checks out.
             </p>
-            <div className="reveal mt-9 flex flex-wrap justify-center gap-3">
-              <Link href="/requests" className={PRIMARY}>
-                See a live verification <Arrow />
+            <div className="reveal mt-8 flex flex-wrap gap-3">
+              <Link href="/requests" className={ON_PHOTO_LIGHT}>
+                See a live verification
               </Link>
-              <ScrollLink to="how" className={SECONDARY}>
+              <ScrollLink to="how" className={ON_PHOTO_DARK}>
                 How it works
               </ScrollLink>
             </div>
-            <div className="reveal mt-14">
-              <HeroCall
-                title={`${run.vendor.name}, ${money(run.payment.amount_cents)} bank change`}
-                meta={`${recordedOn}. ${clock(callLengthMs())} call to ${run.vendor.contact_name}, the contact of record.`}
-                levels={run.levels}
-                stamp={<Stamp kind="VERIFIED" />}
-              />
+            <div className="reveal mt-8">
+              <CallBar label={barLabel} />
             </div>
           </div>
-        </Rail>
+        </section>
 
-        {/* Flow rail */}
-        <Rail>
-          <div className="px-4 py-12 sm:px-8">
-            <p className="eyebrow text-center text-subtle">One verification run, as it happened</p>
-            <ol className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
-              {flow.map((f, i) => (
-                <li key={f.label} className="relative">
-                  <div className={`rounded-[10px] border px-3 py-3 ${i >= 5 ? "border-pass/40 bg-tint" : "border-line bg-white"}`}>
-                    <p className="data text-[11px] text-subtle">{f.t === null ? "--:--" : clock(f.t)}</p>
-                    <p className={`subheading mt-1 text-[14px] ${i >= 5 ? "text-pass" : "text-ink"}`}>{f.label}</p>
-                    <p className="mt-0.5 text-[12px] text-muted">{f.note}</p>
-                  </div>
-                  {i < flow.length - 1 && <span aria-hidden="true" className="absolute left-full top-1/2 hidden h-px w-3 bg-line-strong lg:block" />}
+        {/* Proof strip */}
+        <section className="border-b border-line bg-panel">
+          <div className="mx-auto max-w-[1280px] px-4 py-10 sm:px-8">
+            <p className="eyebrow text-subtle">A real verification run, {recordedOn}</p>
+            <ol className="mt-6 grid grid-cols-2 gap-y-6 sm:grid-cols-3 lg:grid-cols-6">
+              {steps.map((s, i) => (
+                <li key={s.label} className="border-line pr-4 lg:border-l lg:pl-5 lg:first:border-l-0 lg:first:pl-0">
+                  <p className="data text-[13px] text-subtle">{s.t === null ? "--:--" : clock(s.t)}</p>
+                  <p className={`subheading mt-1 text-[17px] ${i >= 4 ? "text-pass" : "text-ink"}`}>{s.label}</p>
                 </li>
               ))}
             </ol>
           </div>
-        </Rail>
+        </section>
 
-        {/* Problem and solution */}
-        <Rail id="how">
-          <div className="grid grid-cols-1 lg:grid-cols-2">
-            <div className="border-b border-line px-4 py-16 sm:px-10 lg:border-b-0 lg:border-r">
-              <p className="eyebrow text-fail">The problem</p>
-              <h2 className="heading mt-4 text-[40px] text-ink sm:text-[52px]">The control exists. People skip it.</h2>
-              <p className="mt-5 max-w-[460px] text-[17px] leading-[1.55] text-muted">
-                94% of companies say they call the vendor back on a number from official records before moving money. Only 63% say that
-                control works well. A busy team skips the call, or confirms on the same email thread the fraudster wrote from.
-              </p>
-              <a
-                href={`${AFP_HIGHLIGHTS}#page=15`}
-                target="_blank"
-                rel="noreferrer"
-                className="label mt-6 inline-block text-subtle underline underline-offset-4 hover:text-ink"
-              >
-                AFP 2026 Payments Fraud and Control Survey, PDF p. 15
+        {/* Why */}
+        <section id="how" className="bg-canvas">
+          <div className="mx-auto max-w-[1280px] px-4 pt-24 text-center sm:px-8 sm:pt-28">
+            <p className="eyebrow text-ink">The call your team skips</p>
+            <h2 className="heading mx-auto mt-4 max-w-[720px] text-[36px] text-ink sm:text-[48px]">The control exists. People skip it.</h2>
+            <p className="mx-auto mt-5 max-w-[620px] text-[17px] leading-[1.5] text-muted">
+              94% of companies say they call the vendor back on a number from official records. Only 63% say that control works well. Kovrell
+              makes the call mandatory, runs it the same way every time, and records it.{" "}
+              <a href={`${AFP_HIGHLIGHTS}#page=15`} target="_blank" rel="noreferrer" className="text-ink underline underline-offset-4">
+                AFP 2026, PDF p. 15
               </a>
-            </div>
-            <div className="bg-panel px-4 py-16 sm:px-10">
-              <p className="eyebrow text-pass">The solution</p>
-              <h2 className="heading mt-4 text-[40px] text-ink sm:text-[52px]">Hold the payment. Make the call. Every time.</h2>
-              <p className="mt-5 max-w-[460px] text-[17px] leading-[1.55] text-muted">
-                When an email asks to move {money(run.payment.amount_cents)} to a new bank, Kovrell holds the payment, ignores the callback number
-                in the email, and checks the number of record before it dials.
-              </p>
-              <div className="mt-8">
-                <Panel>
-                  <div className="flex items-start justify-between gap-4 border-b border-line p-5">
-                    <div>
-                      <p className="subheading text-[16px] text-ink">{run.vendor.name}</p>
-                      <p className="mt-0.5 text-[13px] text-muted">Bank change by email. Contact of record {run.vendor.contact_name}.</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="data text-[18px] text-ink">{money(run.payment.amount_cents)}</p>
-                      <Stamp kind="HELD" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 border-b border-line">
-                    <div className="border-r border-line p-5">
-                      <p className="label text-subtle">On file</p>
-                      <p className="mt-1.5 text-[14px] text-ink">
-                        {run.on_file.bank_name} <span className="data">{run.on_file.account_last4}</span>
-                      </p>
-                    </div>
-                    <div className="p-5">
-                      <p className="label text-subtle">Requested</p>
-                      <p className="mt-1.5 text-[14px] text-ink">
-                        {run.request.new_bank_name} <span className="data">{run.request.new_account_last4}</span>
-                      </p>
-                    </div>
-                  </div>
-                  <div className="px-5 py-2">
-                    {run.provenance?.map((p) => (
-                      <div key={p.key} className="flex items-baseline justify-between gap-4 border-b border-line py-2.5 last:border-b-0">
-                        <span className="text-[14px] text-ink">
-                          {p.label}
-                          <span className="block text-[12px] text-muted">{p.detail}</span>
-                        </span>
-                        <span className={`label ${p.status === "ok" ? "text-pass" : "text-muted"}`}>{p.status}</span>
-                      </div>
-                    ))}
-                  </div>
-                </Panel>
-              </div>
-            </div>
+            </p>
           </div>
-        </Rail>
 
-        {/* The call */}
-        <Rail>
-          <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_1fr]">
-            <div className="order-2 min-w-0 border-line bg-tint px-4 py-16 sm:px-10 lg:order-1 lg:border-r">
-              <Panel>
+          {/* Feature row 1: the request */}
+          <div className="mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-10 px-4 py-20 sm:px-8 lg:grid-cols-[1fr_1.35fr] lg:gap-16">
+            <div>
+              <Mark size={28} />
+              <h3 className="heading mt-5 text-[32px] text-ink sm:text-[40px]">Every bank change is held and checked first.</h3>
+              <p className="mt-4 max-w-[440px] text-[16px] leading-[1.55] text-muted">
+                An email asks to move {money(run.payment.amount_cents)} to a new bank. Kovrell holds the payment, ignores the callback number in the
+                email, and checks that the number of record is old and unchanged before it dials.
+              </p>
+            </div>
+            <ProductFrame image="/images/warm-bokeh.jpg">
+              <div className="flex items-start justify-between gap-4 border-b border-line p-5">
+                <div>
+                  <p className="text-[17px]">{run.vendor.name}</p>
+                  <p className="mt-0.5 text-[13px] text-muted">Bank change by email. Contact of record {run.vendor.contact_name}.</p>
+                </div>
+                <div className="text-right">
+                  <p className="data text-[20px]">{money(run.payment.amount_cents)}</p>
+                  <Stamp kind="HELD" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 border-b border-line">
+                <div className="border-r border-line p-5">
+                  <p className="label text-subtle">On file</p>
+                  <p className="mt-1.5 text-[14px]">
+                    {run.on_file.bank_name} <span className="data">{run.on_file.account_last4}</span>
+                  </p>
+                </div>
+                <div className="p-5">
+                  <p className="label text-subtle">Requested</p>
+                  <p className="mt-1.5 text-[14px]">
+                    {run.request.new_bank_name} <span className="data">{run.request.new_account_last4}</span>
+                  </p>
+                </div>
+              </div>
+              <div className="p-5">
+                {run.provenance?.map((p) => (
+                  <div key={p.key} className="flex items-baseline justify-between gap-4 border-b border-line py-2.5 last:border-b-0">
+                    <span className="text-[14px]">
+                      {p.label}
+                      <span className="block text-[12px] text-muted">{p.detail}</span>
+                    </span>
+                    <span className={`label ${p.status === "ok" ? "text-pass" : "text-muted"}`}>{p.status}</span>
+                  </div>
+                ))}
+              </div>
+            </ProductFrame>
+          </div>
+
+          {/* Feature row 2: the call */}
+          <div className="mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-10 px-4 pb-24 sm:px-8 lg:grid-cols-[1.35fr_1fr] lg:gap-16">
+            <div className="order-2 min-w-0 lg:order-1">
+              <ProductFrame image="/images/forest-motion.jpg">
                 <div className="flex items-center justify-between border-b border-line p-5">
-                  <p className="text-[14px] text-ink">
+                  <p className="text-[15px]">
                     Calling {run.vendor.contact_name} <span className="data text-muted">{run.vendor.contact_phone}</span>
                   </p>
                   <Stamp kind="VERIFIED" />
                 </div>
                 <div className="px-5 pt-4">
-                  <RecordingWave levels={run.levels} height={40} />
+                  <RecordingWave levels={run.levels} height={44} />
                 </div>
-                <div className="px-5 py-2">
+                <div className="p-5">
                   {checks.map((c) => (
                     <div key={c.key} className="grid grid-cols-[48px_1fr_auto] items-baseline gap-3 border-b border-line py-2.5 last:border-b-0">
                       <span className="data text-[12px] text-subtle">{clock(c.t)}</span>
-                      <span className="text-[14px] text-ink">
+                      <span className="text-[14px]">
                         {c.label}
                         {c.heard && <span className="data block text-[12px] text-muted">Heard: {c.heard}</span>}
                       </span>
@@ -251,88 +234,93 @@ export default function Landing() {
                     </div>
                   ))}
                 </div>
-              </Panel>
+              </ProductFrame>
             </div>
-            <div className="order-1 min-w-0 border-b border-line px-4 py-16 sm:px-10 lg:order-2 lg:border-b-0">
-              <p className="eyebrow text-subtle">The call</p>
-              <h2 className="heading mt-4 text-[40px] text-ink sm:text-[52px]">It asks what only the real vendor knows.</h2>
-              <p className="mt-5 max-w-[440px] text-[17px] leading-[1.55] text-muted">
+            <div className="order-1 min-w-0 lg:order-2">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true" className="text-ink">
+                <path d="M3 12h2M7 8v8M11 5v14M15 8v8M19 11v2" />
+              </svg>
+              <h3 className="heading mt-5 text-[32px] text-ink sm:text-[40px]">It calls the number of record and checks the answers.</h3>
+              <p className="mt-4 max-w-[440px] text-[16px] leading-[1.55] text-muted">
                 Three questions from the ledger, one attempt each. The agent never says the answers and never says whether one was right. Fixed
-                rules released this payment to {run.request.new_bank_name} ending {run.request.new_account_last4}.
+                rules release the payment to {run.request.new_bank_name} ending {run.request.new_account_last4}.
               </p>
-              <PlayCallButton className={`${SECONDARY} mt-8`} />
             </div>
           </div>
-        </Rail>
+        </section>
 
-        {/* Evidence */}
-        <Rail id="evidence">
-          <div className="px-4 py-20 sm:px-10">
-            <div className="flex flex-wrap items-end justify-between gap-6">
-              <div>
-                <p className="eyebrow text-subtle">The evidence</p>
-                <h2 className="heading mt-4 max-w-[560px] text-[40px] text-ink sm:text-[52px]">Every run leaves a sealed record.</h2>
-              </div>
-              <a href={SHOWCASE_RECORD} download className={PRIMARY}>
+        {/* Mint band */}
+        <section className="bg-mint">
+          <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-4 px-4 py-6 sm:px-8">
+            <h2 className="subheading text-[22px] text-black sm:text-[26px]">Hear for yourself</h2>
+            <BandPlay />
+          </div>
+        </section>
+
+        {/* Evidence, dark */}
+        <section id="evidence" className="border-t border-line bg-panel">
+          <div className="mx-auto grid max-w-[1280px] grid-cols-1 gap-12 px-4 py-24 sm:px-8 lg:grid-cols-[1fr_1.5fr]">
+            <div>
+              <p className="eyebrow text-ink">The evidence</p>
+              <h2 className="heading mt-4 text-[36px] text-ink sm:text-[44px]">Every run leaves a sealed record.</h2>
+              <p className="mt-4 max-w-[420px] text-[16px] leading-[1.55] text-muted">
+                The recording, the transcript, every tool call, and the expected versus heard answers, sealed with sha256. Download this run and check
+                the hash yourself.
+              </p>
+              <a href={SHOWCASE_RECORD} download className={`${PRIMARY} mt-8`}>
                 Download the sealed record <Arrow />
               </a>
+              <p className="data mt-6 break-all text-[12px] text-subtle">sha256 {run.sha256}</p>
             </div>
-            <div className="mt-10 grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-3">
-              <Panel>
-                <div className="p-5">
-                  <p className="label text-subtle">Transcript</p>
-                  <div className="mt-3 max-h-[360px] overflow-y-auto">
-                    {lines.map((l, i) => (
-                      <div key={i} className="border-t border-line py-2.5">
-                        <p className="label text-subtle">
-                          {clock(l.t)} <span className={l.who === "agent" ? "text-ink" : "text-muted"}>{l.who === "agent" ? "Agent" : "Vendor"}</span>
-                        </p>
-                        <p className="mt-1 text-[14px] text-ink">{l.text}</p>
-                      </div>
-                    ))}
-                  </div>
+            <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="rounded-[10px] border border-line bg-canvas p-5 sm:row-span-2">
+                <p className="label text-subtle">Transcript</p>
+                <div className="mt-3 max-h-[420px] overflow-y-auto">
+                  {lines.map((l, i) => (
+                    <div key={i} className="border-t border-line py-2.5">
+                      <p className="label text-subtle">
+                        {clock(l.t)} <span className={l.who === "agent" ? "text-ink" : "text-muted"}>{l.who === "agent" ? "Agent" : "Vendor"}</span>
+                      </p>
+                      <p className={`mt-1 text-[14px] ${l.who === "agent" ? "text-ink" : "text-ink-2"}`}>{l.text}</p>
+                    </div>
+                  ))}
                 </div>
-              </Panel>
-              <Panel>
-                <div className="p-5">
-                  <p className="label text-subtle">Expected vs heard</p>
-                  {checks
-                    .filter((c) => c.expected)
-                    .map((c) => (
-                      <div key={c.key} className="mt-3 border-t border-line pt-3">
-                        <p className="text-[14px] text-ink">{c.label}</p>
-                        <p className="data mt-1 text-[12px] text-muted">
-                          Expected {/^\d+\.\d{2}$/.test(c.expected!) ? money(Math.round(Number(c.expected) * 100)) : c.expected}. Heard {c.heard}.
-                        </p>
-                      </div>
-                    ))}
-                  <p className="mt-4 text-[12px] text-subtle">Expected values stay on the server. The agent never hears them.</p>
+              </div>
+              <div className="rounded-[10px] border border-line bg-canvas p-5">
+                <p className="label text-subtle">Expected vs heard</p>
+                {checks
+                  .filter((c) => c.expected)
+                  .map((c) => (
+                    <div key={c.key} className="mt-3 border-t border-line pt-3">
+                      <p className="text-[14px]">{c.label}</p>
+                      <p className="data mt-1 text-[12px] text-muted">
+                        {/^\d+\.\d{2}$/.test(c.expected!) ? money(Math.round(Number(c.expected) * 100)) : c.expected} / {c.heard}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+              <div className="rounded-[10px] border border-line bg-canvas p-5">
+                <p className="label text-subtle">Verdict</p>
+                <div className="mt-3 flex items-center gap-3">
+                  <Mark size={24} verified />
+                  <Stamp kind="VERIFIED" />
                 </div>
-              </Panel>
-              <Panel>
-                <div className="p-5">
-                  <p className="label text-subtle">Verdict and seal</p>
-                  <div className="mt-4 flex items-center gap-3">
-                    <Mark size={24} verified />
-                    <Stamp kind="VERIFIED" />
-                  </div>
-                  <p className="mt-3 text-[14px] text-ink">
-                    Released to {run.request.new_bank_name} ending {run.request.new_account_last4}.
-                  </p>
-                  <p className="mt-1 text-[13px] text-muted">{run.run.reason}</p>
-                  <p className="data mt-5 break-all border-t border-line pt-4 text-[12px] text-muted">sha256 {run.sha256}</p>
-                </div>
-              </Panel>
+                <p className="mt-3 text-[14px] text-ink-2">
+                  Released to {run.request.new_bank_name} ending {run.request.new_account_last4}.
+                </p>
+                <p className="mt-1 text-[13px] text-muted">{run.run.reason}</p>
+              </div>
             </div>
           </div>
-        </Rail>
+        </section>
 
-        {/* Controls */}
-        <Rail>
-          <div className="grid grid-cols-1 gap-12 px-4 py-20 sm:px-10 lg:grid-cols-[1fr_2fr]">
+        {/* Controls grid */}
+        <section className="bg-canvas">
+          <div className="mx-auto grid max-w-[1280px] gap-12 px-4 py-24 sm:px-8 lg:grid-cols-[1fr_2fr]">
             <div>
-              <p className="eyebrow text-subtle">Built for audit</p>
-              <h2 className="heading mt-4 text-[40px] text-ink sm:text-[48px]">Controls that hold up.</h2>
+              <p className="eyebrow text-ink">Built for audit</p>
+              <h2 className="heading mt-4 text-[36px] text-ink sm:text-[40px]">Controls that hold up</h2>
+              <p className="mt-3 text-[16px] text-muted">A callback control, run the same way on every change.</p>
             </div>
             <div className="grid gap-x-10 gap-y-9 sm:grid-cols-2">
               {CONTROLS.map((c) => (
@@ -346,45 +334,71 @@ export default function Landing() {
                     strokeWidth="1.6"
                     strokeLinejoin="round"
                     aria-hidden="true"
-                    className="mt-0.5 text-pass"
+                    className="mt-0.5 text-ink"
                   >
                     {c.icon}
                   </svg>
                   <div>
-                    <p className="subheading text-[17px] text-ink">{c.title}</p>
+                    <p className="subheading text-[18px] text-ink">{c.title}</p>
                     <p className="mt-1.5 text-[15px] leading-[1.5] text-muted">{c.body}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-        </Rail>
+        </section>
 
         {/* Built on */}
-        <Rail className="bg-panel">
-          <div className="flex flex-col items-start gap-8 px-4 py-16 sm:px-10 lg:flex-row lg:items-center lg:justify-between">
+        <section className="border-t border-line bg-panel">
+          <div className="mx-auto grid max-w-[1280px] grid-cols-1 gap-12 px-4 py-24 sm:px-8 lg:grid-cols-[1fr_2fr]">
             <div>
-              <p className="eyebrow text-subtle">Built on</p>
-              <a href="https://www.assemblyai.com/products/voice-agent-api" target="_blank" rel="noreferrer" className="mt-5 inline-block">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/tech/assemblyai.svg" alt="AssemblyAI" width={161} height={28} className="h-9 w-auto" />
-              </a>
+              <p className="eyebrow text-ink">Built on</p>
+              <h2 className="heading mt-4 text-[36px] text-ink sm:text-[40px]">Real infrastructure, end to end.</h2>
+              <p className="mt-3 max-w-[360px] text-[16px] leading-[1.55] text-muted">
+                Every call runs live on the AssemblyAI Voice Agent API. Nothing is simulated.
+              </p>
             </div>
-            <p className="max-w-[560px] text-[17px] leading-[1.55] text-muted">
-              Every Kovrell call runs live on the <span className="text-ink">AssemblyAI Voice Agent API</span>: speech-to-text, turn-taking, tool
-              calls, the agent&apos;s voice, and the session recording that seals each evidence pack.
-            </p>
+            <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3">
+              <a
+                href="https://www.assemblyai.com/products/voice-agent-api"
+                target="_blank"
+                rel="noreferrer"
+                className="col-span-2 rounded-[10px] border border-line bg-canvas p-6 hover:border-line-strong sm:col-span-3"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/tech/assemblyai.svg" alt="AssemblyAI" width={161} height={28} className="h-7 w-auto" />
+                <p className="subheading mt-5 text-[20px] text-ink">Voice Agent API</p>
+                <p className="mt-2 max-w-[640px] text-[15px] leading-[1.5] text-muted">
+                  Universal-3.5 Pro speech-to-text, turn detection and barge-in, JSON Schema tool calls, the agent&apos;s voice, and the session
+                  recording and timeline that seal each evidence pack.
+                </p>
+              </a>
+              {TECH.map((t) => (
+                <a
+                  key={t.name}
+                  href={t.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-[10px] border border-line bg-canvas p-5 hover:border-line-strong"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/tech/${t.icon}.svg`} alt="" width={28} height={28} className="h-7 w-7" />
+                  <p className="subheading mt-4 text-[17px] text-ink">{t.name}</p>
+                  <p className="mt-1 text-[14px] leading-[1.45] text-muted">{t.role}</p>
+                </a>
+              ))}
+            </div>
           </div>
-        </Rail>
+        </section>
 
         {/* Numbers */}
-        <Rail id="numbers">
-          <div className="px-4 py-20 sm:px-10">
-            <h2 className="heading text-center text-[40px] text-ink sm:text-[52px]">Payments fraud, by the numbers.</h2>
-            <div className="mt-12 grid grid-cols-2 gap-y-10 lg:grid-cols-5">
+        <section id="numbers" className="border-t border-line bg-panel">
+          <div className="mx-auto max-w-[1280px] px-4 py-24 sm:px-8">
+            <h2 className="heading text-center text-[36px] text-ink sm:text-[40px]">Payments fraud, by the numbers.</h2>
+            <div className="mt-14 grid grid-cols-2 gap-y-10 lg:grid-cols-5">
               {STATS.map((s) => (
                 <div key={s.n} className="border-line px-4 text-center lg:border-l lg:first:border-l-0">
-                  <p className="display text-[56px] text-ink sm:text-[64px]">{s.n}</p>
+                  <p className="display text-[48px] text-ink sm:text-[56px]">{s.n}</p>
                   <p className="mx-auto mt-2 max-w-[220px] text-[14px] leading-[1.45] text-muted">{s.text}</p>
                   <a
                     href={s.href}
@@ -398,37 +412,39 @@ export default function Landing() {
               ))}
               {run.median_response_ms !== null && (
                 <div className="border-line px-4 text-center lg:border-l">
-                  <p className="display text-[56px] text-ink sm:text-[64px]">{(run.median_response_ms / 1000).toFixed(1)}s</p>
+                  <p className="display text-[48px] text-ink sm:text-[56px]">{(run.median_response_ms / 1000).toFixed(1)}s</p>
                   <p className="mx-auto mt-2 max-w-[220px] text-[14px] leading-[1.45] text-muted">from the vendor finishing a sentence to the agent speaking</p>
                   <p className="label mt-3 text-subtle">Measured on this run</p>
                 </div>
               )}
             </div>
           </div>
-        </Rail>
+        </section>
 
         {/* Close */}
-        <Rail className="bg-tint">
-          <div className="px-4 py-24 text-center sm:px-10">
-            <h2 className="display mx-auto max-w-[760px] text-[48px] text-ink sm:text-[72px]">
-              Verify the vendor <em className="italic">before</em> you release the payment.
-            </h2>
-            <div className="mt-9 flex flex-wrap justify-center gap-3">
-              <Link href="/requests" className={PRIMARY}>
-                See a live verification <Arrow />
+        <section className="relative isolate overflow-hidden">
+          <Image src="/images/forest-motion.jpg" alt="" fill sizes="100vw" className="-z-10 object-cover" />
+          <div className="absolute inset-0 -z-10 bg-black/45" />
+          <div className="mx-auto max-w-[1280px] px-4 py-28 sm:px-8">
+            <h2 className="display max-w-[720px] text-[44px] text-white sm:text-[64px]">Verify the vendor before you release the payment.</h2>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/requests" className={ON_PHOTO_LIGHT}>
+                See a live verification
               </Link>
-              <PlayCallButton className={SECONDARY} />
+              <ScrollLink to="evidence" className={ON_PHOTO_DARK}>
+                Inspect the evidence
+              </ScrollLink>
             </div>
           </div>
-        </Rail>
+        </section>
 
         {/* Footer */}
-        <footer className="bg-canvas">
-          <div className="mx-auto flex max-w-[1200px] flex-wrap items-start justify-between gap-10 border-x border-line px-4 py-14 sm:px-10">
+        <footer className="border-t border-line bg-canvas">
+          <div className="mx-auto flex max-w-[1280px] flex-wrap items-start justify-between gap-10 px-4 py-14 sm:px-8">
             <Wordmark />
             <div className="grid grid-cols-2 gap-x-16 gap-y-2">
-              <p className="label text-subtle">Product</p>
-              <p className="label text-subtle">Proof</p>
+              <p className="label text-pass">Product</p>
+              <p className="label text-pass">Proof</p>
               <Link href="/requests" className="text-[14px] text-muted hover:text-ink">
                 Requests
               </Link>

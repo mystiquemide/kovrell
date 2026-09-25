@@ -18,7 +18,6 @@
   --color-pass: var(--k-pass);
   --color-fail: var(--k-fail);
   --color-mint: #62f6b5;
-  --color-tint: var(--k-tint);
   --color-black: #000000;
   --color-spec-blue: #4dcafa;
   --color-spec-pink: #de94e2;
@@ -26,18 +25,16 @@
   --color-spec-violet: #9977ff;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-serif), Georgia, serif;
-  --font-tight: var(--font-inter-tight), var(--font-inter), ui-sans-serif, sans-serif;
+  --font-display: var(--font-inter-tight), var(--font-inter), ui-sans-serif, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 :root {
-  --k-canvas: #fbfaf7;
-  --k-panel: #f4f2ec;
-  --k-chip: #ece9e2;
-  --k-line: #e5e1d8;
-  --k-line-strong: #d3cdbf;
-  --k-tint: #e9f2ec;
+  --k-canvas: #fefefe;
+  --k-panel: #fbfbfb;
+  --k-chip: #efeeec;
+  --k-line: #e8e6e3;
+  --k-line-strong: #d9d3c2;
   --k-ink: #111013;
   --k-ink-2: #27272a;
   --k-muted: #52525b;
@@ -102,27 +99,26 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Display and headings: editorial serif, like a statement or a cheque. */
+/* Display: heavy and tight. */
 .display {
   font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  line-height: 1.02;
 }
 
 .heading {
   font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: -0.015em;
-  line-height: 1.08;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
 }
 
-/* Small titles stay in a tight sans for scanning. */
 .subheading {
-  font-family: var(--font-tight);
+  font-family: var(--font-display);
   font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
 }
 
 :focus-visible {

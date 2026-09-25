@@ -25,14 +25,14 @@ export function Nav({ company }: { company: string }) {
               <Link
                 key={l.href}
                 href={l.href}
-                className={`font-tight text-[15px] font-medium transition-colors ${active ? "text-ink" : "text-subtle hover:text-ink"}`}
+                className={`font-display text-[15px] font-medium transition-colors ${active ? "text-ink" : "text-subtle hover:text-ink"}`}
               >
                 {l.label}
               </Link>
             );
           })}
         </nav>
-        <span className="hidden h-10 items-center rounded-full border border-line px-4 font-tight text-[15px] font-medium text-ink md:inline-flex">{company}</span>
+        <span className="hidden h-10 items-center rounded-[12px] bg-chip px-4 font-display text-[15px] font-medium text-ink md:inline-flex">{company}</span>
       </div>
     </header>
   );
