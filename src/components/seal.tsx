@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { copyText } from "@/lib/copy";
 
 const VERIFY_CMD = `python3 -c "import json,hashlib,sys; d=json.load(open(sys.argv[1])); print(hashlib.sha256(json.dumps(d['record'],sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()==d['sha256'])" kovrell-record.json`;
 
@@ -10,8 +11,8 @@ export function Seal({ hash, downloadHref }: { hash: string; downloadHref: strin
   const [copied, setCopied] = useState<"hash" | "cmd" | null>(null);
   const [howTo, setHowTo] = useState(false);
 
-  async function copy(text: string, what: "hash" | "cmd") {
-    await navigator.clipboard.writeText(text).catch(() => undefined);
+  function copy(text: string, what: "hash" | "cmd") {
+    copyText(text);
     setCopied(what);
     setTimeout(() => setCopied(null), 1800);
   }
@@ -24,7 +25,7 @@ export function Seal({ hash, downloadHref }: { hash: string; downloadHref: strin
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
         <button onClick={() => copy(hash, "hash")} className="rounded-full border border-line-strong px-3 py-1.5 text-[13px] text-ink hover:bg-chip">
-          {copied === "hash" ? "Copied" : "Copy hash"}
+          <span aria-live="polite">{copied === "hash" ? "Copied" : "Copy hash"}</span>
         </button>
         <button onClick={() => setFull(!full)} className="rounded-full border border-line-strong px-3 py-1.5 text-[13px] text-ink hover:bg-chip">
           {full ? "Shorten" : "Show full hash"}

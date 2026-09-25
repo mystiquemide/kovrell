@@ -47,6 +47,9 @@ export default function IntegratePage() {
         Kovrell sits between a bank-detail change and the payment it affects. Four HTTP calls connect it to whatever sees those changes today. These
         examples run against this sandbox and its sample ledger.
       </p>
+      <p className="mt-4 rounded-[10px] border border-line bg-panel px-4 py-3 text-[14px] text-ink-2">
+        Sandbox requests use sample data and can be reset at any time. Don&apos;t send production vendor or banking information.
+      </p>
 
       <div className="mt-12 border-t border-line">
         {STEPS.map((s) => (

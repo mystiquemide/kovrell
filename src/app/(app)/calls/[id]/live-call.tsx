@@ -8,6 +8,7 @@ import { CallButton } from "@/components/call-button";
 import { Mark } from "@/components/mark";
 import { Stamp, verdictStamp } from "@/components/stamp";
 import { Waveform } from "@/components/waveform";
+import { copyText } from "@/lib/copy";
 import { clock, money } from "@/lib/format";
 import type { runView } from "@/server/views";
 
@@ -132,9 +133,9 @@ export function LiveCall({ initial, callPath }: { initial: View; callPath: strin
             <button
               className={SECONDARY}
               disabled={!callUrl}
-              onClick={async () => {
+              onClick={() => {
                 if (!callUrl) return;
-                await navigator.clipboard.writeText(callUrl);
+                copyText(callUrl);
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
               }}
