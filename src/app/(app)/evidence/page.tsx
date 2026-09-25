@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Stamp, verdictStamp } from "@/components/stamp";
-import { dateTime, duration } from "@/lib/format";
+import { clock, dateTime, duration } from "@/lib/format";
 import { getStore } from "@/server/store";
 import { runListView } from "@/server/views";
+import { callLengthMs, showcase } from "@/showcase";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Evidence" };
@@ -17,13 +18,29 @@ export default function EvidencePage() {
         Each run keeps the recording, the transcript, every tool call, and the checks, sealed with a sha256 over the full record.
       </p>
 
+      <Link
+        href={`/evidence/${showcase.run.id}`}
+        className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-[12px] border border-line bg-panel p-5 hover:border-line-strong"
+      >
+        <div>
+          <p className="label text-subtle">Showcase run</p>
+          <p className="mt-1.5 text-[16px] text-ink">
+            {showcase.vendor.name}, verified in {clock(callLengthMs())}. Recording, transcript, checks, and seal.
+          </p>
+          <p className="data mt-1 text-[13px] text-subtle">
+            {showcase.run.id}  sha256 {showcase.sha256.slice(0, 8)}...{showcase.sha256.slice(-4)}
+          </p>
+        </div>
+        <Stamp kind="VERIFIED" />
+      </Link>
+
       {runs.length === 0 ? (
-        <p className="mt-16 text-muted">
-          No verification runs yet.{" "}
+        <p className="mt-12 text-muted">
+          No runs completed in this sandbox yet.{" "}
           <Link href="/requests" className="text-ink underline-offset-4 hover:underline">
             Start one from Requests
-          </Link>
-          .
+          </Link>{" "}
+          and it appears here with its own sealed record.
         </p>
       ) : (
         <div className="mt-12 overflow-x-auto">

@@ -5,7 +5,7 @@ import { Waveform } from "@/components/waveform";
 import { clock } from "@/lib/format";
 
 /** Plays the real call recording (vendor left, agent right) with its stored waveform. */
-export function Recording({ runId, levels, available }: { runId: string; levels: number[]; available: boolean }) {
+export function Recording({ src, levels, available }: { src: string; levels: number[]; available: boolean }) {
   const audio = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
@@ -40,7 +40,7 @@ export function Recording({ runId, levels, available }: { runId: string; levels:
 
   return (
     <div>
-      <audio ref={audio} src={`/api/runs/${runId}/audio`} preload="metadata" />
+      <audio ref={audio} src={src} preload="metadata" />
       <div className="flex items-center gap-4">
         <button
           onClick={() => {

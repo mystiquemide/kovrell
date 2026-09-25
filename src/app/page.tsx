@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Arrow, ON_PHOTO_DARK, ON_PHOTO_LIGHT, PRIMARY, SECONDARY } from "@/components/button";
 import { Mark, Wordmark } from "@/components/mark";
+import { Seal } from "@/components/seal";
 import { Stamp } from "@/components/stamp";
 import { clock, dateOnly, money } from "@/lib/format";
 import { SHOWCASE_AUDIO, SHOWCASE_RECORD, callLengthMs, checkTimeline, milestones, showcase, transcript } from "@/showcase";
@@ -79,7 +80,9 @@ export default function Landing() {
         {/* Nav */}
         <header className="sticky top-0 z-30 border-b border-line bg-canvas">
           <div className="mx-auto flex h-[72px] max-w-[1280px] items-center justify-between px-4 sm:px-8">
-            <Wordmark />
+            <Link href="/" aria-label="Kovrell home">
+              <Wordmark />
+            </Link>
             <nav className="hidden items-center gap-9 font-display text-[15px] font-medium md:flex">
               <ScrollLink to="how" className="text-ink hover:text-subtle">
                 How it works
@@ -261,7 +264,12 @@ export default function Landing() {
               <a href={SHOWCASE_RECORD} download className={`${PRIMARY} mt-8`}>
                 Download the sealed record <Arrow />
               </a>
-              <p className="data mt-6 break-all text-[12px] text-subtle">sha256 {run.sha256}</p>
+              <div className="mt-8">
+                <Seal hash={run.sha256} downloadHref={SHOWCASE_RECORD} />
+              </div>
+              <Link href={`/evidence/${run.run.id}`} className="mt-6 inline-block text-[15px] text-ink underline underline-offset-4">
+                Open the full evidence pack
+              </Link>
             </div>
             <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="rounded-[10px] border border-line bg-canvas p-5 sm:row-span-2">
@@ -346,7 +354,7 @@ export default function Landing() {
               <p className="eyebrow text-ink">Built on</p>
               <h2 className="heading mt-4 text-[36px] text-ink sm:text-[40px]">Real infrastructure, end to end.</h2>
               <p className="mt-3 max-w-[360px] text-[16px] leading-[1.55] text-muted">
-                Every call runs live on the AssemblyAI Voice Agent API. Nothing is simulated.
+                Every verification call runs live through the AssemblyAI Voice Agent API. This showcase uses a scripted test vendor and sample ledger data.
               </p>
             </div>
             <div className="min-w-0">
@@ -411,6 +419,9 @@ export default function Landing() {
               <ScrollLink to="evidence" className={ON_PHOTO_DARK}>
                 Inspect the evidence
               </ScrollLink>
+              <Link href="/integrate" className={ON_PHOTO_DARK}>
+                How to integrate
+              </Link>
             </div>
           </div>
         </section>
@@ -436,6 +447,9 @@ export default function Landing() {
               </ScrollLink>
               <Link href="/evidence" className="text-[14px] text-muted hover:text-ink">
                 Runs
+              </Link>
+              <Link href="/integrate" className="text-[14px] text-muted hover:text-ink">
+                Integrate
               </Link>
               <a href={SHOWCASE_RECORD} download className="text-[14px] text-muted hover:text-ink">
                 Sealed record

@@ -5,6 +5,8 @@ import { Stamp, verdictStamp } from "@/components/stamp";
 import { clock, dateTime, duration, money } from "@/lib/format";
 import { getStore } from "@/server/store";
 import { evidenceView } from "@/server/views";
+import { SHOWCASE_RUN_ID, showcaseEvidenceView } from "@/showcase";
+import { Seal } from "@/components/seal";
 import { Recording } from "./recording";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +21,10 @@ function expectedText(key: string, expected: string | null) {
 
 export default async function EvidencePackPage({ params }: PageProps<"/evidence/[id]">) {
   const { id } = await params;
-  const view = evidenceView(getStore(), id);
+  const stored = id === SHOWCASE_RUN_ID ? null : evidenceView(getStore(), id);
+  const view = id === SHOWCASE_RUN_ID
+    ? showcaseEvidenceView()
+    : stored && { ...stored, audioSrc: `/api/runs/${id}/audio`, downloadHref: `/api/runs/${id}/evidence?download=1`, isShowcase: false };
   if (!view) notFound();
   const { run, vendor, request, checks, events, evidence, labels, record } = view;
   const provenance = ((record as { provenance_at_call?: Provenance } | null)?.provenance_at_call ?? null) as Provenance | null;
@@ -34,7 +39,7 @@ export default async function EvidencePackPage({ params }: PageProps<"/evidence/
       <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="label text-subtle">
-            Verification run <span className="data normal-case text-muted">{run.id}</span>
+            {view.isShowcase ? "Showcase run" : "Verification run"} <span className="data normal-case text-muted">{run.id}</span>
           </p>
           <h1 className="heading mt-2 text-[32px] sm:text-[40px]">{vendor.name}</h1>
           <p className="mt-2 text-muted">
@@ -56,6 +61,12 @@ export default async function EvidencePackPage({ params }: PageProps<"/evidence/
         </p>
       ) : (
         <>
+          {view.isShowcase && (
+            <p className="mt-6 rounded-[10px] border border-line bg-panel px-4 py-3 text-[14px] text-muted">
+              Showcase run recorded on this system. The agent ran live on the AssemblyAI Voice Agent API. The vendor&apos;s answers were spoken
+              by a scripted test caller, against the sample ledger.
+            </p>
+          )}
           <p className="mt-6 text-[18px]">{run.reason}</p>
           <p className="mt-1 text-muted">
             {run.verdict === "PASS"
@@ -68,7 +79,7 @@ export default async function EvidencePackPage({ params }: PageProps<"/evidence/
           <section className="mt-12">
             <p className="label text-subtle">Recording</p>
             <div className="mt-4">
-              <Recording runId={run.id} levels={evidence?.levels ?? []} available={Boolean(evidence?.audio_available)} />
+              <Recording src={view.audioSrc} levels={evidence?.levels ?? []} available={Boolean(evidence?.audio_available)} />
             </div>
           </section>
 
@@ -146,13 +157,15 @@ export default async function EvidencePackPage({ params }: PageProps<"/evidence/
             <p className="label text-subtle">Seal</p>
             {evidence?.sha256 ? (
               <>
-                <p className="data mt-3 break-all text-[14px]">sha256 {evidence.sha256}</p>
+                <div className="mt-3">
+                  <Seal hash={evidence.sha256} downloadHref={view.downloadHref} />
+                </div>
                 <p className="mt-2 text-[14px] text-muted">
                   Hash over the canonical run record: request, provenance, checks with expected values, every event, and the provider
                   session. {evidence.status === "sealed" ? "Sealed with the AssemblyAI timeline." : evidence.status === "pending" ? "Waiting for the provider timeline." : "Sealed without a provider timeline."}
                   {evidence.median_response_ms !== null && ` Median agent response on this call: ${evidence.median_response_ms} ms.`}
                 </p>
-                <a href={`/api/runs/${run.id}/evidence?download=1`} className={`${SECONDARY} mt-5`}>
+                <a href={view.downloadHref} download className={`${SECONDARY} mt-5`}>
                   Download JSON
                 </a>
               </>

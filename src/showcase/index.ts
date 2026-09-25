@@ -54,3 +54,30 @@ export function callLengthMs() {
   const o = eventAt((e) => e.kind === "outcome") ?? a;
   return o - a;
 }
+
+export const SHOWCASE_RUN_ID = showcase.run.id;
+
+/** The showcase run in the same shape as a stored run's evidence view, for the evidence pages. */
+export function showcaseEvidenceView() {
+  return {
+    run: showcase.run,
+    vendor: showcase.vendor,
+    request: showcase.request,
+    payment: showcase.payment,
+    labels: showcase.labels as Record<string, string>,
+    checks: showcase.checks,
+    events: showcase.events.map((e, i) => ({ id: i + 1, run_id: showcase.run.id, ...e })),
+    evidence: {
+      status: "sealed" as const,
+      sha256: showcase.sha256,
+      levels: showcase.levels,
+      audio_available: true,
+      median_response_ms: showcase.median_response_ms,
+      updated_at: showcase.recorded_at,
+    },
+    record: showcase.record,
+    audioSrc: SHOWCASE_AUDIO,
+    downloadHref: SHOWCASE_RECORD,
+    isShowcase: true,
+  };
+}
