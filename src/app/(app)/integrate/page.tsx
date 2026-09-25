@@ -78,6 +78,12 @@ export default function IntegratePage() {
         <Link href="/evidence" className="inline-flex h-10 items-center px-2 text-[15px] text-ink underline underline-offset-4">
           See sealed evidence
         </Link>
+        <a
+          href="mailto:splashmediahub@gmail.com?subject=Kovrell%20pilot%20request"
+          className="inline-flex h-10 items-center px-2 text-[15px] text-ink underline underline-offset-4"
+        >
+          Request a pilot
+        </a>
       </div>
     </div>
   );

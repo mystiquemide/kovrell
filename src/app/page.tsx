@@ -10,6 +10,9 @@ import { SHOWCASE_AUDIO, SHOWCASE_RECORD, callLengthMs, checkTimeline, milestone
 import { BandPlay, CallBar, RecordingWave, ShowcasePlayer } from "./_landing/player";
 import { ScrollLink } from "./_landing/scroll-link";
 
+const PILOT_MAILTO =
+  "mailto:splashmediahub@gmail.com?subject=Kovrell%20pilot%20request&body=Company%3A%0AAP%20team%20size%3A%0AVendors%20paid%20per%20month%3A%0AHow%20you%20verify%20bank%20changes%20today%3A%0A";
+
 const AFP_RELEASE =
   "https://www.financialprofessionals.org/about/learn-more/press-releases/Details/over-75-percent-of-us-firms-experienced-payments-fraud-in-2025-while-ai-adoption-for-fraud-mitigation-lags";
 const AFP_HIGHLIGHTS =
@@ -422,6 +425,9 @@ export default function Landing() {
               <Link href="/integrate" className={ON_PHOTO_DARK}>
                 How to integrate
               </Link>
+              <a href={PILOT_MAILTO} className={ON_PHOTO_DARK}>
+                Request a pilot
+              </a>
             </div>
           </div>
         </section>
