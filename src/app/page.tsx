@@ -7,6 +7,7 @@ import { Stamp } from "@/components/stamp";
 import { clock, dateOnly, money } from "@/lib/format";
 import { SHOWCASE_AUDIO, SHOWCASE_RECORD, callLengthMs, checkTimeline, milestones, showcase, transcript } from "@/showcase";
 import { BandPlay, CallBar, RecordingWave, ShowcasePlayer } from "./_landing/player";
+import { ScrollLink } from "./_landing/scroll-link";
 
 const AFP_RELEASE =
   "https://www.financialprofessionals.org/about/learn-more/press-releases/Details/over-75-percent-of-us-firms-experienced-payments-fraud-in-2025-while-ai-adoption-for-fraud-mitigation-lags";
@@ -89,15 +90,15 @@ export default function Landing() {
           <div className="mx-auto flex h-[72px] max-w-[1280px] items-center justify-between px-4 sm:px-8">
             <Wordmark />
             <nav className="hidden items-center gap-9 font-display text-[15px] font-medium md:flex">
-              <a href="#how" className="text-ink hover:text-subtle">
+              <ScrollLink to="how" className="text-ink hover:text-subtle">
                 How it works
-              </a>
-              <a href="#evidence" className="text-ink hover:text-subtle">
+              </ScrollLink>
+              <ScrollLink to="evidence" className="text-ink hover:text-subtle">
                 Evidence
-              </a>
-              <a href="#numbers" className="text-ink hover:text-subtle">
+              </ScrollLink>
+              <ScrollLink to="numbers" className="text-ink hover:text-subtle">
                 Numbers
-              </a>
+              </ScrollLink>
             </nav>
             <Link href="/requests" className={SECONDARY}>
               <span className="sm:hidden">See it live</span>
@@ -120,9 +121,9 @@ export default function Landing() {
               <Link href="/requests" className={ON_PHOTO_LIGHT}>
                 See a live verification
               </Link>
-              <a href="#how" className={ON_PHOTO_DARK}>
+              <ScrollLink to="how" className={ON_PHOTO_DARK}>
                 How it works
-              </a>
+              </ScrollLink>
             </div>
             <div className="reveal mt-8">
               <CallBar label={barLabel} />
@@ -430,9 +431,9 @@ export default function Landing() {
               <Link href="/requests" className={ON_PHOTO_LIGHT}>
                 See a live verification
               </Link>
-              <a href="#evidence" className={ON_PHOTO_DARK}>
+              <ScrollLink to="evidence" className={ON_PHOTO_DARK}>
                 Inspect the evidence
-              </a>
+              </ScrollLink>
             </div>
           </div>
         </section>
@@ -447,15 +448,15 @@ export default function Landing() {
               <Link href="/requests" className="text-[14px] text-muted hover:text-ink">
                 Requests
               </Link>
-              <a href="#evidence" className="text-[14px] text-muted hover:text-ink">
+              <ScrollLink to="evidence" className="text-[14px] text-muted hover:text-ink">
                 Evidence
-              </a>
+              </ScrollLink>
               <Link href="/vendors" className="text-[14px] text-muted hover:text-ink">
                 Vendors
               </Link>
-              <a href="#numbers" className="text-[14px] text-muted hover:text-ink">
+              <ScrollLink to="numbers" className="text-[14px] text-muted hover:text-ink">
                 Numbers
-              </a>
+              </ScrollLink>
               <Link href="/evidence" className="text-[14px] text-muted hover:text-ink">
                 Runs
               </Link>
