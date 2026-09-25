@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Arrow, ON_PHOTO_DARK, ON_PHOTO_LIGHT, SECONDARY } from "@/components/button";
+import { Arrow, ON_PHOTO_DARK, ON_PHOTO_LIGHT, PRIMARY, SECONDARY } from "@/components/button";
 import { Mark, Wordmark } from "@/components/mark";
 import { Stamp } from "@/components/stamp";
 import { clock, dateOnly, money } from "@/lib/format";
@@ -258,7 +258,7 @@ export default function Landing() {
         </section>
 
         {/* Evidence, dark */}
-        <section id="evidence" className="theme-dark bg-black">
+        <section id="evidence" className="border-t border-line bg-panel">
           <div className="mx-auto grid max-w-[1280px] grid-cols-1 gap-12 px-4 py-24 sm:px-8 lg:grid-cols-[1fr_1.5fr]">
             <div>
               <p className="eyebrow text-ink">The evidence</p>
@@ -267,7 +267,7 @@ export default function Landing() {
                 The recording, the transcript, every tool call, and the expected versus heard answers, sealed with sha256. Download this run and check
                 the hash yourself.
               </p>
-              <a href={SHOWCASE_RECORD} download className={`${ON_PHOTO_DARK} mt-8`}>
+              <a href={SHOWCASE_RECORD} download className={`${PRIMARY} mt-8`}>
                 Download the sealed record <Arrow />
               </a>
               <p className="data mt-6 break-all text-[12px] text-subtle">sha256 {run.sha256}</p>
@@ -349,7 +349,7 @@ export default function Landing() {
         </section>
 
         {/* Built on */}
-        <section className="theme-dark bg-black">
+        <section className="border-t border-line bg-panel">
           <div className="mx-auto grid max-w-[1280px] grid-cols-1 gap-12 px-4 py-24 sm:px-8 lg:grid-cols-[1fr_2fr]">
             <div>
               <p className="eyebrow text-ink">Built on</p>
@@ -439,7 +439,7 @@ export default function Landing() {
         </section>
 
         {/* Footer */}
-        <footer className="theme-dark bg-black">
+        <footer className="border-t border-line bg-canvas">
           <div className="mx-auto flex max-w-[1280px] flex-wrap items-start justify-between gap-10 px-4 py-14 sm:px-8">
             <Wordmark />
             <div className="grid grid-cols-2 gap-x-16 gap-y-2">
