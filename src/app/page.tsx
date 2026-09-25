@@ -53,6 +53,15 @@ const CONTROLS: { title: string; body: string; icon: ReactNode }[] = [
   },
 ];
 
+const TECH = [
+  { name: "Next.js", icon: "nextdotjs", role: "App, API routes, and pages", href: "https://nextjs.org/" },
+  { name: "Node.js", icon: "nodedotjs", role: "Custom server holding every agent session", href: "https://nodejs.org/" },
+  { name: "React", icon: "react", role: "Live call screen and vendor softphone", href: "https://react.dev/" },
+  { name: "TypeScript", icon: "typescript", role: "Verification engine and fixed verdict rules", href: "https://www.typescriptlang.org/" },
+  { name: "SQLite", icon: "sqlite", role: "Ledger, runs, events, and sealed evidence", href: "https://sqlite.org/" },
+  { name: "Tailwind CSS", icon: "tailwindcss", role: "Design tokens and themes", href: "https://tailwindcss.com/" },
+];
+
 function ProductFrame({ image, children }: { image: string; children: ReactNode }) {
   return (
     <div className="relative min-w-0 overflow-hidden rounded-[14px]">
@@ -117,23 +126,6 @@ export default function Landing() {
             </div>
             <div className="reveal mt-8">
               <CallBar label={barLabel} />
-            </div>
-          </div>
-        </section>
-
-        {/* Sponsors */}
-        <section className="border-b border-line bg-canvas">
-          <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-x-10 gap-y-6 px-4 py-8 sm:px-8">
-            <p className="eyebrow text-ink">Built for the AssemblyAI Voice Agent Hackathon</p>
-            <div className="flex items-center gap-10 sm:gap-14">
-              <a href="https://www.assemblyai.com/" target="_blank" rel="noreferrer" aria-label="AssemblyAI" className="opacity-90 hover:opacity-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/sponsors/assemblyai.svg" alt="AssemblyAI" width={161} height={28} className="h-7 w-auto" />
-              </a>
-              <a href="https://lablab.ai/" target="_blank" rel="noreferrer" aria-label="lablab.ai" className="opacity-90 hover:opacity-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/sponsors/lablab-ai.svg" alt="lablab.ai" width={44} height={44} className="h-11 w-auto" />
-              </a>
             </div>
           </div>
         </section>
@@ -350,6 +342,49 @@ export default function Landing() {
                     <p className="mt-1.5 text-[15px] leading-[1.5] text-muted">{c.body}</p>
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Built on */}
+        <section className="theme-dark bg-black">
+          <div className="mx-auto grid max-w-[1280px] grid-cols-1 gap-12 px-4 py-24 sm:px-8 lg:grid-cols-[1fr_2fr]">
+            <div>
+              <p className="eyebrow text-ink">Built on</p>
+              <h2 className="heading mt-4 text-[36px] text-ink sm:text-[40px]">Real infrastructure, end to end.</h2>
+              <p className="mt-3 max-w-[360px] text-[16px] leading-[1.55] text-muted">
+                Every call runs live on the AssemblyAI Voice Agent API. Nothing is simulated.
+              </p>
+            </div>
+            <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3">
+              <a
+                href="https://www.assemblyai.com/products/voice-agent-api"
+                target="_blank"
+                rel="noreferrer"
+                className="col-span-2 rounded-[10px] border border-line bg-canvas p-6 hover:border-line-strong sm:col-span-3"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/tech/assemblyai.svg" alt="AssemblyAI" width={161} height={28} className="h-7 w-auto" />
+                <p className="subheading mt-5 text-[20px] text-ink">Voice Agent API</p>
+                <p className="mt-2 max-w-[640px] text-[15px] leading-[1.5] text-muted">
+                  Universal-3.5 Pro speech-to-text, turn detection and barge-in, JSON Schema tool calls, the agent&apos;s voice, and the session
+                  recording and timeline that seal each evidence pack.
+                </p>
+              </a>
+              {TECH.map((t) => (
+                <a
+                  key={t.name}
+                  href={t.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-[10px] border border-line bg-canvas p-5 hover:border-line-strong"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/tech/${t.icon}.svg`} alt="" width={28} height={28} className="h-7 w-7" />
+                  <p className="subheading mt-4 text-[17px] text-ink">{t.name}</p>
+                  <p className="mt-1 text-[14px] leading-[1.45] text-muted">{t.role}</p>
+                </a>
               ))}
             </div>
           </div>
