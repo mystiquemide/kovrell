@@ -135,3 +135,56 @@ export function RecordingWave({ levels, height = 64 }: { levels: number[]; heigh
     </button>
   );
 }
+
+/**
+ * Small checks panel for the hero. While the recording plays, each check turns to PASS at the
+ * moment it passed on that call. When idle it shows the final result of the run.
+ */
+export function LiveChecks({
+  checks,
+  audioStartMs,
+  amount,
+  releasedTo,
+}: {
+  checks: { key: string; label: string; t: number }[];
+  audioStartMs: number;
+  amount: string;
+  releasedTo: string;
+}) {
+  const { playing, time } = usePlayer();
+  const idle = !playing && time === 0;
+  const nowMs = time * 1000 + audioStartMs;
+  const passed = (t: number) => idle || nowMs >= t;
+  const done = checks.every((c) => passed(c.t));
+
+  return (
+    <div className="w-full max-w-[380px] rounded-[14px] border border-black/10 bg-white/95 p-5 text-left text-[#111013] backdrop-blur-sm">
+      <div className="flex items-center justify-between">
+        <p className="label text-[#71717a]">{idle ? "Checks on this call" : playing ? "Live checks" : "Checks, paused"}</p>
+        {!idle && <span className="data text-[12px] text-[#71717a]">{clock(time * 1000)}</span>}
+      </div>
+      <ul className="mt-3">
+        {checks.map((c) => {
+          const ok = passed(c.t);
+          return (
+            <li key={c.key} className="flex items-center justify-between gap-3 border-t border-black/[0.07] py-2 text-[14px]">
+              <span className={ok ? "text-[#111013]" : "text-[#71717a]"}>{c.label}</span>
+              <span className={`label transition-colors ${ok ? "text-[#0b7a55]" : "text-[#a1a1aa]"}`}>{ok ? "Pass" : "Waiting"}</span>
+            </li>
+          );
+        })}
+      </ul>
+      <div className="mt-2 flex items-center justify-between border-t border-black/[0.07] pt-3">
+        <span className="data text-[15px]">{amount}</span>
+        <span
+          className={`label rounded-[5.6px] border px-2.5 py-1 transition-colors ${
+            done ? "border-[#0b7a55] text-[#0b7a55]" : "border-[#d3cdbf] text-[#111013]"
+          }`}
+        >
+          {done ? "Verified" : "Held"}
+        </span>
+      </div>
+      <p className="mt-2 text-[12px] text-[#71717a]">{done ? `Released to ${releasedTo}.` : "Payment held until every check passes."}</p>
+    </div>
+  );
+}

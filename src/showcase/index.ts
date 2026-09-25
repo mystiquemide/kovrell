@@ -81,3 +81,6 @@ export function showcaseEvidenceView() {
     isShowcase: true,
   };
 }
+
+/** The recording starts when the AssemblyAI session is ready; run timestamps are offset by this. */
+export const SHOWCASE_AUDIO_START_MS = eventAt(state("ready")) ?? 0;

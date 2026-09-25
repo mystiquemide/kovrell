@@ -6,8 +6,8 @@ import { Mark, Wordmark } from "@/components/mark";
 import { Seal } from "@/components/seal";
 import { Stamp } from "@/components/stamp";
 import { clock, dateOnly, money } from "@/lib/format";
-import { SHOWCASE_AUDIO, SHOWCASE_RECORD, callLengthMs, checkTimeline, milestones, showcase, transcript } from "@/showcase";
-import { BandPlay, CallBar, RecordingWave, ShowcasePlayer } from "./_landing/player";
+import { SHOWCASE_AUDIO, SHOWCASE_AUDIO_START_MS, SHOWCASE_RECORD, callLengthMs, checkTimeline, milestones, showcase, transcript } from "@/showcase";
+import { BandPlay, CallBar, LiveChecks, RecordingWave, ShowcasePlayer } from "./_landing/player";
 import { ScrollLink } from "./_landing/scroll-link";
 
 const PILOT_MAILTO =
@@ -108,7 +108,8 @@ export default function Landing() {
         <section className="relative isolate flex min-h-[640px] items-end overflow-hidden sm:min-h-[760px]">
           <Image src="/images/forest-motion.jpg" alt="" fill priority sizes="100vw" className="-z-10 object-cover" />
           <div className="absolute inset-0 -z-10 bg-black/35" />
-          <div className="mx-auto w-full max-w-[1280px] px-4 pb-16 pt-32 sm:px-8 sm:pb-24">
+          <div className="mx-auto grid w-full max-w-[1280px] grid-cols-1 items-end gap-10 px-4 pb-16 pt-32 sm:px-8 sm:pb-24 lg:grid-cols-[1fr_380px]">
+            <div className="min-w-0">
             <h1 className="display reveal max-w-[760px] text-[48px] text-white sm:text-[80px]">Kovrell calls the vendor before you pay.</h1>
             <p className="reveal mt-6 max-w-[560px] text-[18px] leading-[1.45] text-white/90">
               A voice agent verifies every bank-detail change on the vendor&apos;s number of record, asks what only the real vendor knows,
@@ -124,6 +125,15 @@ export default function Landing() {
             </div>
             <div className="reveal mt-8">
               <CallBar label={barLabel} />
+            </div>
+            </div>
+            <div className="reveal">
+              <LiveChecks
+                checks={checks.map((c) => ({ key: c.key, label: c.label, t: c.t }))}
+                audioStartMs={SHOWCASE_AUDIO_START_MS}
+                amount={money(run.payment.amount_cents)}
+                releasedTo={`${run.request.new_bank_name} ending ${run.request.new_account_last4}`}
+              />
             </div>
           </div>
         </section>
