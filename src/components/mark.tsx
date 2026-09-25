@@ -16,7 +16,7 @@ export function Wordmark() {
   return (
     <span className="flex items-center gap-2.5 text-ink">
       <Mark />
-      <span className="font-display text-[19px] font-semibold tracking-[0.14em]">KOVRELL</span>
+      <span className="font-tight text-[18px] font-semibold tracking-[0.16em]">KOVRELL</span>
     </span>
   );
 }
