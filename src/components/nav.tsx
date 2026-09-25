@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Wordmark } from "./mark";
+import { Mark, Wordmark } from "./mark";
 
 const LINKS = [
+  { href: "/", label: "Home", match: [] as string[] },
   { href: "/requests", label: "Requests", match: ["/requests", "/calls"] },
   { href: "/vendors", label: "Vendors", match: ["/vendors"] },
   { href: "/evidence", label: "Evidence", match: ["/evidence"] },
@@ -15,10 +16,15 @@ export function Nav({ company }: { company: string }) {
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-canvas">
       <div className="mx-auto flex h-[72px] max-w-[1280px] items-center justify-between gap-6 px-4 sm:px-8">
-        <Link href="/" aria-label="Kovrell home">
-          <Wordmark />
+        <Link href="/" aria-label="Kovrell home" className="shrink-0">
+          <span className="hidden sm:inline">
+            <Wordmark />
+          </span>
+          <span className="text-ink sm:hidden">
+            <Mark size={24} />
+          </span>
         </Link>
-        <nav className="flex items-center gap-5 sm:gap-9">
+        <nav className="flex items-center gap-4 sm:gap-9">
           {LINKS.map((l) => {
             const active = l.match.some((m) => path.startsWith(m));
             return (
