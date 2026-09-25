@@ -155,6 +155,37 @@ export function LiveCall({ initial, callPath }: { initial: View; callPath: strin
         </section>
       )}
 
+      {!ended && !expired && initial.testerSheet && (
+        <details open className="mt-6 rounded-[12px] border border-line bg-panel p-6">
+          <summary className="cursor-pointer list-none">
+            <span className="label text-subtle">Playing the vendor?</span>
+            <span className="ml-3 text-[14px] text-muted">What the real {initial.testerSheet.vendorName} would know, from the sample ledger.</span>
+          </summary>
+          <div className="mt-5 grid gap-6 sm:grid-cols-2">
+            <div>
+              <p className="text-[14px] text-muted">To pass, answer as {initial.testerSheet.contactName}:</p>
+              <ul className="mt-3 space-y-2.5 text-[15px] text-ink">
+                <li>Say who you are: &ldquo;Yes, this is {initial.testerSheet.contactName.split(" ")[0]}.&rdquo;</li>
+                <li>Confirm you asked for the bank change.</li>
+                {initial.testerSheet.answers.map((a) => (
+                  <li key={a.label}>
+                    {a.label}: <span className="data font-medium">{a.answer}</span>
+                  </li>
+                ))}
+                <li>Confirm the new account: {initial.testerSheet.newBank}.</li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-[14px] text-muted">To see a fraud attempt blocked:</p>
+              <p className="mt-3 text-[15px] text-ink">Say you never asked to change your bank details, or give wrong totals.</p>
+              <p className="mt-4 text-[13px] text-subtle">
+                The agent never sees these answers. In production they stay in your ledger and only the real vendor knows them.
+              </p>
+            </div>
+          </div>
+        </details>
+      )}
+
       {expired && !ended && (
         <section className="mt-10 border-t border-line pt-8">
           <p className="text-muted">Nobody answered within 15 minutes. The payment stays held.</p>

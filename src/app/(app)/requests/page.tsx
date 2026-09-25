@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ResetLedger } from "@/components/reset-ledger";
 import { Stamp, requestStamp } from "@/components/stamp";
 import { CHANNEL_LABEL, dateTime, money } from "@/lib/format";
 import { getStore } from "@/server/store";
@@ -24,6 +25,31 @@ export default function RequestsPage() {
           </p>
         )}
       </div>
+
+      <section className="mt-10 rounded-[12px] border border-line bg-panel p-6">
+        <p className="label text-subtle">Try it yourself</p>
+        <ol className="mt-4 grid gap-4 text-[15px] leading-[1.5] text-ink-2 sm:grid-cols-3">
+          <li>
+            <span className="data mr-2 text-subtle">01</span>
+            Open <strong className="font-medium text-ink">Northwind Steel</strong> and press <strong className="font-medium text-ink">Call vendor of record</strong>.
+          </li>
+          <li>
+            <span className="data mr-2 text-subtle">02</span>
+            On the call screen, press <strong className="font-medium text-ink">Open vendor line</strong> and answer with your microphone.
+          </li>
+          <li>
+            <span className="data mr-2 text-subtle">03</span>
+            Play the vendor. The call screen shows what the real vendor knows, so you can pass, or deny the change to see it blocked.
+          </li>
+        </ol>
+        <p className="mt-4 text-[13px] text-subtle">
+          This is a sample ledger. Brightline Print stays locked on purpose: its phone number changed six days ago. When every request is decided,
+          reset the ledger for the next person.
+        </p>
+        <div className="mt-5">
+          <ResetLedger />
+        </div>
+      </section>
 
       {rows.length === 0 ? (
         <p className="mt-16 max-w-md text-muted">No bank-detail changes waiting. Payments release on schedule.</p>

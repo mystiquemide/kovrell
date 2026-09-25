@@ -126,5 +126,32 @@ export function runView(store: Store, id: string) {
     payment: detail.payment,
     checks: publicChecks(store.listChecks(id)),
     events: store.listEvents(id),
+    testerSheet: run.status === "ended" ? null : testerSheet(detail),
+  };
+}
+
+/**
+ * What the real vendor would know, from the sample ledger. Shown to the person testing the
+ * call on the AP screen so they can play the vendor. Never sent to the vendor call page.
+ */
+export function testerSheet(detail: NonNullable<ReturnType<Store["getRequestDetail"]>>) {
+  let answers: { label: string; prompt: string; answer: string }[] = [];
+  try {
+    answers = buildChallenges(detail).map((c) => ({
+      label: c.label,
+      prompt: c.prompt,
+      answer:
+        c.kind === "amount"
+          ? ((c.expected as number) / 100).toLocaleString("en-US", { style: "currency", currency: "USD" })
+          : new Date(`${c.expected as string}T00:00:00Z`).toLocaleDateString("en-US", { month: "long", day: "numeric", timeZone: "UTC" }),
+    }));
+  } catch {
+    answers = [];
+  }
+  return {
+    contactName: detail.vendor.contact_name,
+    vendorName: detail.vendor.name,
+    newBank: `${detail.request.new_bank_name}, ending ${detail.request.new_account_last4}`,
+    answers,
   };
 }
