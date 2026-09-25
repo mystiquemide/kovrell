@@ -121,6 +121,23 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* Sponsors */}
+        <section className="border-b border-line bg-canvas">
+          <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-x-10 gap-y-6 px-4 py-8 sm:px-8">
+            <p className="eyebrow text-ink">Built for the AssemblyAI Voice Agent Hackathon</p>
+            <div className="flex items-center gap-10 sm:gap-14">
+              <a href="https://www.assemblyai.com/" target="_blank" rel="noreferrer" aria-label="AssemblyAI" className="opacity-90 hover:opacity-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/sponsors/assemblyai.svg" alt="AssemblyAI" width={161} height={28} className="h-7 w-auto" />
+              </a>
+              <a href="https://lablab.ai/" target="_blank" rel="noreferrer" aria-label="lablab.ai" className="opacity-90 hover:opacity-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/sponsors/lablab-ai.svg" alt="lablab.ai" width={44} height={44} className="h-11 w-auto" />
+              </a>
+            </div>
+          </div>
+        </section>
+
         {/* Proof strip */}
         <section className="border-b border-line bg-panel">
           <div className="mx-auto max-w-[1280px] px-4 py-10 sm:px-8">
@@ -411,9 +428,6 @@ export default function Landing() {
                 Sealed record
               </a>
             </div>
-          </div>
-          <div className="mx-auto max-w-[1280px] border-t border-line px-4 py-6 text-[13px] text-subtle sm:px-8">
-            Built on the AssemblyAI Voice Agent API. Photos from Unsplash.
           </div>
         </footer>
       </div>
