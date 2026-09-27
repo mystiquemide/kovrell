@@ -28,7 +28,9 @@ const STEPS = [
   -d '{"vendor_id":"v_halden","channel":"email",
        "new_bank_name":"Metro Commerce Bank",
        "new_account_last4":"7712",
-       "callback_contact":"+1 646 555 0173"}'`,
+       "callback_contact":"+1 646 555 0173",
+       "webhook_url":"https://erp.example.com/kovrell"}'
+# 201 returns the request and, with a webhook, its signing secret (shown once)`,
   },
   {
     n: "02",
@@ -38,16 +40,19 @@ const STEPS = [
   },
   {
     n: "03",
-    title: "Read the verdict",
-    body: "Poll the run, or watch it live over the socket. PASS releases the payment to the new account, FAIL blocks it, anything else keeps it held.",
-    code: `curl ${BASE}/api/runs/<run id>
+    title: "Get the verdict",
+    body: "Kovrell posts verification.completed to your webhook when the call ends: verdict, payment status, and evidence links. Check the kovrell-signature header (HMAC-SHA256 of \"<t>.<body>\" with your secret) before acting on it. You can also poll the run or watch it live.",
+    code: `# kovrell-signature: t=1790540000,v1=<hex>
+expected = hmac_sha256(secret, f"{t}.{raw_body}")
+curl ${BASE}/api/runs/<run id>
 # live events: wss://kovrell.midelabs.xyz/ws/watch/<run id>`,
   },
   {
     n: "04",
     title: "Keep the evidence",
-    body: "Every run ends with a sealed record: recording, transcript, tool calls, expected versus heard answers, and a sha256 over all of it.",
-    code: `curl -o record.json "${BASE}/api/runs/<run id>/evidence?download=1"`,
+    body: "Every run ends with a sealed record: recording, transcript, tool calls, expected versus heard answers, and a sha256 over all of it. The PDF report is the readable copy an auditor files.",
+    code: `curl -o record.json "${BASE}/api/runs/<run id>/evidence?download=1"
+curl -o report.pdf "${BASE}/api/runs/<run id>/pdf"   # the same pack as a PDF for the audit file`,
   },
 ];
 

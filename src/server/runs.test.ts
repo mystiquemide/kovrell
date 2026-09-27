@@ -162,4 +162,28 @@ describe("RunController", () => {
     expect(agents.at(-1)!.opts.company).toBe("Globex Foods");
     expect(controller.callerCompany("req_northwind")).toBe("Acme");
   });
+
+  it("posts the verdict to the request's webhook when the call ends", async () => {
+    const store = createStore(openDb(":memory:"));
+    store.seedIfEmpty(NOW);
+    store.setWebhook("req_northwind", "https://hooks.example.com/k", "whsec_x");
+    const { factory, agents } = fakeAgentFactory();
+    const bodies: Record<string, unknown>[] = [];
+    const fetchImpl = (async (_u: URL, init: RequestInit) => (bodies.push(JSON.parse(init.body as string)), new Response(null, { status: 200 }))) as unknown as typeof fetch;
+    const controller = new RunController({
+      store, apiKey: "k", company: "Acme", publicBaseUrl: "https://kovrell.test", agentFactory: factory, now: () => NOW,
+      webhook: { fetchImpl, resolve: async () => ["93.184.216.34"], delaysMs: [0] },
+    });
+    const { run } = controller.createRun("req_northwind");
+    controller.answer(run.call_token, fakeChannel());
+    agents[0].end({ verdict: "PASS", reason: "ok" } as VerdictResult);
+    await new Promise((r) => setTimeout(r, 20));
+    expect(bodies[0]).toMatchObject({
+      event: "verification.completed",
+      run_id: run.id,
+      verdict: "PASS",
+      payment: { status: "released", destination_last4: "8841" },
+      evidence: { pdf: `https://kovrell.test/api/runs/${run.id}/pdf` },
+    });
+  });
 });

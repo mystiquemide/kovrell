@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { copyText } from "@/lib/copy";
-
-const VERIFY_CMD = `python3 -c "import json,hashlib,sys; d=json.load(open(sys.argv[1])); print(hashlib.sha256(json.dumps(d['record'],sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()==d['sha256'])" kovrell-record.json`;
+import { VERIFY_CMD } from "@/lib/verify";
 
 /** Shows a sha256 seal short by default, with copy, expand, and a way to check it yourself. */
 export function Seal({ hash, downloadHref }: { hash: string; downloadHref: string }) {

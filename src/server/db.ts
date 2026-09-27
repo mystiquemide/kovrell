@@ -85,6 +85,16 @@ CREATE TABLE IF NOT EXISTS evidence (
   status TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS webhooks (
+  request_id TEXT PRIMARY KEY REFERENCES requests(id),
+  url TEXT NOT NULL,
+  secret TEXT NOT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  last_code INTEGER,
+  last_error TEXT,
+  delivered INTEGER NOT NULL DEFAULT 0,
+  last_at TEXT
+);
 CREATE TABLE IF NOT EXISTS checks (
   run_id TEXT NOT NULL REFERENCES runs(id),
   key TEXT NOT NULL,

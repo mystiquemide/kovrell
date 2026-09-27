@@ -43,7 +43,7 @@ export function SetupForm() {
     { number: "PRL-1207", amount: "22,915.50", paid_on: daysAgo(35) },
     { number: "PRL-1231", amount: "9,780.00", paid_on: daysAgo(11) },
   ]);
-  const [change, setChange] = useState({ new_bank_name: "Bank of America", new_account_last4: "6612", payment: "31,400.00", channel: "email" });
+  const [change, setChange] = useState({ new_bank_name: "Bank of America", new_account_last4: "6612", payment: "31,400.00", channel: "email", webhook_url: "" });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,6 +75,7 @@ export function SetupForm() {
       channel: change.channel,
       new_bank_name: change.new_bank_name,
       new_account_last4: change.new_account_last4,
+      ...(change.webhook_url.trim() ? { webhook_url: change.webhook_url.trim() } : {}),
     });
     if (!request.ok) {
       setError(request.body.error ?? "Could not create the change request.");
@@ -211,6 +212,17 @@ export function SetupForm() {
                 <option value="letter">Letter</option>
               </select>
             </Field>
+            <div className="sm:col-span-2">
+              <Field label="Webhook URL (optional)" hint="Where your ERP hears the verdict. Paste a webhook.site URL to watch Kovrell post it, signed, when the call ends.">
+                <input
+                  className={FIELD}
+                  type="url"
+                  placeholder="https://webhook.site/..."
+                  value={change.webhook_url}
+                  onChange={(e) => setChange({ ...change, webhook_url: e.target.value })}
+                />
+              </Field>
+            </div>
           </div>
         </div>
       </section>

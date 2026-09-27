@@ -90,13 +90,14 @@ Every behavior below has a test:
 
 | Scenario | Result | Test |
 |---|---|---|
-| Fraudster confirms the request but guesses the answers | FAIL, payment blocked | [verification.test.ts#L143](src/server/verification/verification.test.ts#L143) |
-| Real vendor never requested a change | FAIL, account on file kept | [runs.test.ts#L118](src/server/runs.test.ts#L118) |
-| Phone number of record changed first | LOCKED before any call | [runs.test.ts#L86](src/server/runs.test.ts#L86) |
+| Fraudster confirms the request but guesses the answers | FAIL, payment blocked | [verification.test.ts#L165](src/server/verification/verification.test.ts#L165) |
+| Real vendor never requested a change | FAIL, account on file kept | [runs.test.ts#L120](src/server/runs.test.ts#L120) |
+| Phone number of record changed first | LOCKED before any call | [runs.test.ts#L88](src/server/runs.test.ts#L88) |
 | "Hello, can you hear me?" taken as identity | Needs explicit confirmation from the caller | [agent-session.test.ts#L93](src/server/agent/agent-session.test.ts#L93) |
 | Call drops after good answers | INCONCLUSIVE, payment held | [agent-session.test.ts#L113](src/server/agent/agent-session.test.ts#L113) |
 | AssemblyAI session fails | Fails closed to INCONCLUSIVE | [agent-session.test.ts#L175](src/server/agent/agent-session.test.ts#L175) |
 | Answers leak into the prompt, the API, or the vendor page | Config, API views, and vendor socket carry no answers | [agent-session.test.ts#L52](src/server/agent/agent-session.test.ts#L52), [views.test.ts#L9](src/server/views.test.ts#L9) |
+| Webhook URL aimed at an internal address (SSRF) | Refused at registration and again before every delivery | [webhook.test.ts#L31](src/server/webhook.test.ts#L31), [webhook.test.ts#L62](src/server/webhook.test.ts#L62) |
 
 ## Try it
 
@@ -106,9 +107,10 @@ The live app runs on a sample ledger with three vendors. You play the vendor wit
 2. Open Northwind Steel ($184,200.00), press **Call vendor of record**, then **Open vendor line**.
 3. The call screen shows a tester sheet with what the real vendor knows. Answer from it to get PASS, or deny the request or guess the totals to get FAIL. The sheet exists only so you can play the vendor in this demo. It never reaches the vendor page or the API.
 4. Open [/evidence](https://kovrell.midelabs.xyz/evidence) for the sealed record: checks, recording, timeline, and the sha256 seal with a command to re-verify it.
-5. Press **Reset the sample ledger** on /requests when you're done.
+5. Download the PDF report from the evidence page. That's what an auditor would file.
+6. Press **Reset the sample ledger** on /requests when you're done.
 
-**Try it on your own vendor:** open [/setup](https://kovrell.midelabs.xyz/setup), enter a made-up vendor, its contact, a few paid invoices, and the bank change. Kovrell holds the payment, and you take the call as that vendor with questions drawn from the invoices you entered. Pick "Changed 6 days ago" for the phone to see the call refused. This is the same data an ERP sends through `POST /api/vendors` and `POST /api/requests`.
+**Try it on your own vendor:** open [/setup](https://kovrell.midelabs.xyz/setup), enter your company name, a made-up vendor, its contact, a few paid invoices, and the bank change. Paste a [webhook.site](https://webhook.site) URL to watch the signed verdict arrive when the call ends. Kovrell holds the payment, and you take the call as that vendor with questions drawn from the invoices you entered. Pick "Changed 6 days ago" for the phone to see the call refused. This is the same data an ERP sends through `POST /api/vendors` and `POST /api/requests`.
 
 ![Held payments inbox with the try-it guide](docs/screenshots/requests.jpg)
 
@@ -126,7 +128,7 @@ curl https://kovrell.midelabs.xyz/api/runs/<run id>                          # l
 
 ## Business value and next steps
 
-Kovrell fits into any accounts payable flow as a hold step: a request comes in through `POST /api/requests`, and the payment stays held until the call returns a verdict and an audit-ready evidence pack.
+Kovrell fits into any accounts payable flow as a hold step. The ERP syncs vendors and paid invoices through `POST /api/vendors` and sends each bank-change request to `POST /api/requests` with a `webhook_url`. The payment stays held until the call ends, then Kovrell posts a signed `verification.completed` webhook (HMAC-SHA256, the Stripe-style `t=,v1=` scheme) with the verdict and payment status. Every run has a JSON evidence record and a PDF report for the audit file.
 
 Current scope:
 

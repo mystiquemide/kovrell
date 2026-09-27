@@ -72,7 +72,10 @@ function spokenAmount(cents: number): string {
 /** Answers whichever invoice the agent asks about, straight from the ledger. */
 function ledgerAnswer(requestId: string, t: string, source = store): string | null {
   const d = source.getRequestDetail(requestId)!;
-  const inv = d.invoices.find((i) => t.includes(i.number) || t.includes(i.number.replace(/\D/g, "").split("").join(" ")));
+  // The agent may read "PRL-1150" as "P R L one one five zero", so compare letters and digits only.
+  const DIGITS: Record<string, string> = { zero: "0", oh: "0", one: "1", two: "2", three: "3", four: "4", five: "5", six: "6", seven: "7", eight: "8", nine: "9" };
+  const heard = t.toLowerCase().replace(/\b(zero|oh|one|two|three|four|five|six|seven|eight|nine)\b/g, (w) => DIGITS[w]).replace(/[^a-z0-9]/g, "");
+  const inv = d.invoices.find((i) => heard.includes(i.number.toLowerCase().replace(/[^a-z0-9]/g, "")));
   if (!inv) return null;
   if (/date|when/i.test(t)) return `We received it on ${spokenDate(inv.paid_on!)}.`;
   return `That one was ${spokenAmount(inv.amount_cents)}.`;

@@ -142,7 +142,12 @@ export function VendorCall({ token, company, callerLine }: { token: string; comp
         finish("error");
       }
     };
-    ws.onclose = () => finish("ended");
+    // A close the server didn't announce means the line dropped, not that the call finished.
+    ws.onclose = () => {
+      if (ended) return;
+      setError("The connection dropped. The payment stays on hold until the call is placed again.");
+      finish("error");
+    };
     ws.onerror = () => {
       setError("The call could not connect.");
       finish("error");

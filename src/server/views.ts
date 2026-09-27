@@ -1,4 +1,4 @@
-import type { Run, StoredCheck, Store } from "./store";
+import type { Run, StoredCheck, Store, Webhook } from "./store";
 import { buildChallenges, QUESTION_POOL_SIZE } from "./verification/challenges";
 import { preflight, PROVENANCE_WINDOW_DAYS } from "./verification/provenance";
 
@@ -85,6 +85,19 @@ export function evidenceView(store: Store, id: string) {
   };
 }
 
+/** Delivery status for the request page. The secret and URL path never leave the server. */
+export function webhookView(hook: Webhook | null) {
+  if (!hook) return null;
+  return {
+    host: new URL(hook.url).host,
+    attempts: hook.attempts,
+    delivered: hook.delivered === 1,
+    last_code: hook.last_code,
+    last_error: hook.last_error,
+    last_at: hook.last_at,
+  };
+}
+
 export function requestView(store: Store, id: string, now = Date.now()) {
   const detail = store.getRequestDetail(id);
   if (!detail) return null;
@@ -103,6 +116,7 @@ export function requestView(store: Store, id: string, now = Date.now()) {
     changes,
     preflight: preflight(detail, now),
     questionPool: questionPool.length >= 2 ? questionPool : [],
+    webhook: webhookView(store.getWebhook(id)),
     latestRun: run ? publicRun(run) : null,
     runs: store.listRunsForRequest(id).map(publicRun),
     /** A run that can still be answered or is on the line right now. */

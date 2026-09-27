@@ -120,6 +120,17 @@ export interface EvidenceRow {
   updated_at: string;
 }
 
+export interface Webhook {
+  request_id: string;
+  url: string;
+  secret: string;
+  attempts: number;
+  last_code: number | null;
+  last_error: string | null;
+  delivered: number;
+  last_at: string | null;
+}
+
 export interface RunListRow extends Run {
   vendor_name: string;
   vendor_id: string;
@@ -133,6 +144,7 @@ export function createStore(db: Db) {
     const runs = `SELECT r.id FROM runs r JOIN requests q ON q.id = r.request_id WHERE q.vendor_id = ?`;
     for (const t of ["evidence", "checks", "run_events"]) db.prepare(`DELETE FROM ${t} WHERE run_id IN (${runs})`).run(id);
     db.prepare(`DELETE FROM runs WHERE request_id IN (SELECT id FROM requests WHERE vendor_id = ?)`).run(id);
+    db.prepare(`DELETE FROM webhooks WHERE request_id IN (SELECT id FROM requests WHERE vendor_id = ?)`).run(id);
     for (const t of ["requests", "payments", "invoices", "vendor_changes", "vendors"]) {
       db.prepare(`DELETE FROM ${t} WHERE ${t === "vendors" ? "id" : "vendor_id"} = ?`).run(id);
     }
@@ -147,7 +159,7 @@ export function createStore(db: Db) {
 
     reset(now = Date.now()) {
       db.transaction(() => {
-        for (const t of ["evidence", "checks", "run_events", "runs", "requests", "payments", "invoices", "vendor_changes", "vendors"]) {
+        for (const t of ["webhooks", "evidence", "checks", "run_events", "runs", "requests", "payments", "invoices", "vendor_changes", "vendors"]) {
           db.prepare(`DELETE FROM ${t}`).run();
         }
         seedSampleLedger(db, now);
@@ -376,6 +388,21 @@ export function createStore(db: Db) {
         for (const { id: old } of custom.slice(keepCustom)) removeVendor(old);
       })();
       return db.prepare("SELECT * FROM vendors WHERE id = ?").get(id) as Vendor;
+    },
+
+    /** Registers where the verdict for a request is posted. The secret signs each delivery. */
+    setWebhook(requestId: string, url: string, secret: string) {
+      db.prepare("INSERT OR REPLACE INTO webhooks (request_id, url, secret) VALUES (?, ?, ?)").run(requestId, url, secret);
+    },
+
+    getWebhook(requestId: string): Webhook | null {
+      return (db.prepare("SELECT * FROM webhooks WHERE request_id = ?").get(requestId) as Webhook | undefined) ?? null;
+    },
+
+    recordWebhookAttempt(requestId: string, result: { code: number | null; error: string | null; delivered: boolean }) {
+      db.prepare(
+        `UPDATE webhooks SET attempts = attempts + 1, last_code = ?, last_error = ?, delivered = ?, last_at = ? WHERE request_id = ?`,
+      ).run(result.code, result.error, result.delivered ? 1 : 0, new Date().toISOString(), requestId);
     },
 
     /** Adds a bank-change request against the vendor's next held or scheduled payment. */

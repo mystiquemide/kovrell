@@ -165,9 +165,14 @@ export default async function EvidencePackPage({ params }: PageProps<"/evidence/
                   session. {evidence.status === "sealed" ? "Sealed with the AssemblyAI timeline." : evidence.status === "pending" ? "Waiting for the provider timeline." : "Sealed without a provider timeline."}
                   {evidence.median_response_ms !== null && ` Median agent response on this call: ${evidence.median_response_ms} ms.`}
                 </p>
-                <a href={view.downloadHref} download className={`${SECONDARY} mt-5`}>
-                  Download JSON
-                </a>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <a href={`/api/runs/${run.id}/pdf`} download className={SECONDARY}>
+                    Download PDF report
+                  </a>
+                  <a href={view.downloadHref} download className={SECONDARY}>
+                    Download JSON
+                  </a>
+                </div>
               </>
             ) : (
               <p className="mt-3 text-muted">Sealing. The seal appears within a minute of the call ending.</p>

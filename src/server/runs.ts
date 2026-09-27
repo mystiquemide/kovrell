@@ -4,6 +4,7 @@ import { AgentSession, type AgentEvent, type AgentSessionOptions, type EndResult
 import type { CallChannel } from "./channels";
 import type { Run, RunEvent, Store } from "./store";
 import { buildChallenges, type Challenge } from "./verification/challenges";
+import { deliverWebhook, type DeliverOptions } from "./webhook";
 import { preflight } from "./verification/provenance";
 import { sealWithRetry, type FetchSession } from "./evidence";
 import { LevelMeter, rms } from "./levels";
@@ -35,6 +36,8 @@ export interface RunControllerOptions {
   store: Store;
   apiKey: string;
   company: string;
+  /** Test hooks for webhook delivery. */
+  webhook?: DeliverOptions;
   publicBaseUrl: string;
   agentFactory?: AgentFactory;
   /** Reads AssemblyAI session artifacts after a call. Null disables evidence fetching (tests). */
@@ -255,8 +258,42 @@ export class RunController {
     if (live) clearInterval(live.ticker);
     this.live.delete(runId);
     sealWithRetry(store, runId, live?.meter.series ?? [], this.opts.fetchSession ?? null, live?.responseGaps ?? []);
+    void this.notify(runId);
     for (const ws of this.watchers.get(runId) ?? []) ws.close(1000, "ended");
     this.watchers.delete(runId);
+  }
+
+  /** Tells the customer's system the outcome, if it registered a webhook for this request. */
+  private async notify(runId: string) {
+    const { store, publicBaseUrl } = this.opts;
+    const run = store.getRun(runId)!;
+    const detail = store.getRequestDetail(run.request_id)!;
+    const base = publicBaseUrl.replace(/\/$/, "");
+    await deliverWebhook(
+      store,
+      run.request_id,
+      {
+        event: "verification.completed",
+        sent_at: new Date(this.now()).toISOString(),
+        request_id: run.request_id,
+        run_id: run.id,
+        verdict: run.verdict,
+        reason: run.reason,
+        vendor: { id: detail.vendor.id, name: detail.vendor.name },
+        payment: {
+          id: detail.payment.id,
+          status: detail.payment.status,
+          amount_cents: detail.payment.amount_cents,
+          destination_last4: detail.payment.destination_last4,
+        },
+        evidence: {
+          url: `${base}/evidence/${run.id}`,
+          json: `${base}/api/runs/${run.id}/evidence?download=1`,
+          pdf: `${base}/api/runs/${run.id}/pdf`,
+        },
+      },
+      this.opts.webhook,
+    ).catch(() => false);
   }
 
   private record(runId: string, kind: string, payload: unknown): RunEvent {
