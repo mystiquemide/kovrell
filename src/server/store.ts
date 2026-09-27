@@ -88,6 +88,8 @@ export interface Run {
   started_at: string;
   ended_at: string | null;
   evidence_sha256: string | null;
+  /** Who the agent introduced itself as on this call. */
+  caller_company?: string | null;
 }
 
 export interface RunEvent {
@@ -208,11 +210,11 @@ export function createStore(db: Db) {
       return { vendor, changes };
     },
 
-    createRun(run: Pick<Run, "id" | "request_id" | "channel" | "call_token" | "token_expires_at" | "started_at">) {
+    createRun(run: Pick<Run, "id" | "request_id" | "channel" | "call_token" | "token_expires_at" | "started_at"> & { caller_company?: string | null }) {
       db.prepare(
-        `INSERT INTO runs (id, request_id, channel, call_token, token_expires_at, status, started_at)
-         VALUES (@id, @request_id, @channel, @call_token, @token_expires_at, 'ringing', @started_at)`,
-      ).run(run);
+        `INSERT INTO runs (id, request_id, channel, call_token, token_expires_at, status, started_at, caller_company)
+         VALUES (@id, @request_id, @channel, @call_token, @token_expires_at, 'ringing', @started_at, @caller_company)`,
+      ).run({ caller_company: null, ...run });
     },
 
     getRun(id: string): Run | null {

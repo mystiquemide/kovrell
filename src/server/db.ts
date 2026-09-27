@@ -65,7 +65,8 @@ CREATE TABLE IF NOT EXISTS runs (
   reason TEXT,
   started_at TEXT NOT NULL,
   ended_at TEXT,
-  evidence_sha256 TEXT
+  evidence_sha256 TEXT,
+  caller_company TEXT
 );
 CREATE TABLE IF NOT EXISTS run_events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -111,8 +112,10 @@ export function openDb(path: string): Db {
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
   db.exec(SCHEMA);
-  // Databases created before per-vendor payer names get the column added in place.
-  const cols = db.prepare("PRAGMA table_info(vendors)").all() as { name: string }[];
-  if (!cols.some((c) => c.name === "payer_name")) db.exec("ALTER TABLE vendors ADD COLUMN payer_name TEXT");
+  // Databases created before these columns existed get them added in place.
+  for (const [table, column] of [["vendors", "payer_name"], ["runs", "caller_company"]]) {
+    const cols = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+    if (!cols.some((c) => c.name === column)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} TEXT`);
+  }
   return db;
 }

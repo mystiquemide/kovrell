@@ -1,4 +1,6 @@
+import { cookies } from "next/headers";
 import { z } from "zod";
+import { COMPANY_COOKIE } from "@/lib/company";
 import { allow, clientIp } from "@/server/rate-limit";
 import { getStore } from "@/server/store";
 
@@ -59,5 +61,9 @@ export async function POST(req: Request) {
   const parsed = CreateVendor.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return Response.json({ error: z.prettifyError(parsed.error) }, { status: 400 });
   const vendor = getStore().createVendorLedger(parsed.data);
+  // Remember the visitor's company so the app shows it, the way a signed-in tenant would see their own name.
+  if (parsed.data.payer_name) {
+    (await cookies()).set(COMPANY_COOKIE, parsed.data.payer_name, { maxAge: 30 * 86_400, sameSite: "lax", secure: true, path: "/" });
+  }
   return Response.json({ vendor }, { status: 201 });
 }

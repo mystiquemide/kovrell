@@ -27,10 +27,10 @@ function toCents(v: string): number {
   return Number.isFinite(n) ? Math.round(n * 100) : NaN;
 }
 
-export function SetupForm() {
+export function SetupForm({ company }: { company: string }) {
   const router = useRouter();
   const [vendor, setVendor] = useState({
-    payer_name: "",
+    payer_name: company,
     name: "Pine Ridge Lumber",
     contact_name: "Alex Morgan",
     contact_phone: "+1 503 555 0164",
@@ -94,10 +94,10 @@ export function SetupForm() {
           <p className="mt-2 text-[15px] leading-[1.55] text-muted">What your vendor master already holds. Kovrell only ever calls this contact.</p>
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <Field label="Your company" hint="Who the agent calls on behalf of. Leave blank to call as Acme Manufacturing.">
+              <Field label="Your company" hint="Who the agent calls on behalf of. It also shows in the top right. Leave blank to use the sample company, Acme Manufacturing.">
                 <input
                   className={FIELD}
-                  placeholder="Acme Manufacturing"
+                  placeholder="Type your company name"
                   value={vendor.payer_name}
                   onChange={(e) => setVendor({ ...vendor, payer_name: e.target.value })}
                 />

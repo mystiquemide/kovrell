@@ -1,7 +1,8 @@
 import { Nav } from "@/components/nav";
+import { defaultCompany, visitorCompany } from "@/lib/company";
 
-export default function AppLayout({ children }: LayoutProps<"/">) {
-  const company = `${process.env.KOVRELL_COMPANY_NAME || "Acme Manufacturing"} AP`;
+export default async function AppLayout({ children }: LayoutProps<"/">) {
+  const company = `${(await visitorCompany()) ?? defaultCompany()} AP`;
   return (
     <>
       <Nav company={company} />

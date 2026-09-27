@@ -1,10 +1,11 @@
 import { Nav } from "@/components/nav";
 import { ButtonLink, Arrow } from "@/components/button";
+import { defaultCompany, visitorCompany } from "@/lib/company";
 
-export default function NotFound() {
+export default async function NotFound() {
   return (
     <>
-      <Nav company={`${process.env.KOVRELL_COMPANY_NAME || "Acme Manufacturing"} AP`} />
+      <Nav company={`${(await visitorCompany()) ?? defaultCompany()} AP`} />
       <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 pt-20 sm:px-6">
         <p className="label text-subtle">404</p>
         <h1 className="heading mt-3 text-[40px]">Nothing here.</h1>

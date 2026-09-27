@@ -160,7 +160,11 @@ describe("RunController", () => {
     expect(controller.companyForToken(run.call_token)).toBe("Globex Foods");
     controller.answer(run.call_token, fakeChannel());
     expect(agents.at(-1)!.opts.company).toBe("Globex Foods");
-    expect(controller.callerCompany("req_northwind")).toBe("Acme");
+    expect(controller.callerCompany(controller.createRun("req_northwind").run)).toBe("Acme");
+    // A visitor's company is used for vendors without their own payer, and is fixed on the run.
+    const visitorRun = controller.createRun("req_halden", "Initech").run;
+    expect(visitorRun.caller_company).toBe("Initech");
+    expect(controller.companyForToken(visitorRun.call_token)).toBe("Initech");
   });
 
   it("posts the verdict to the request's webhook when the call ends", async () => {

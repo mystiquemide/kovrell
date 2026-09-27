@@ -1,9 +1,13 @@
 import Link from "next/link";
+import { visitorCompany } from "@/lib/company";
 import { SetupForm } from "./setup-form";
 
 export const metadata = { title: "Set up a vendor" };
 
-export default function SetupPage() {
+export const dynamic = "force-dynamic";
+
+export default async function SetupPage() {
+  const company = await visitorCompany();
   return (
     <div className="reveal max-w-[880px]">
       <p className="label text-subtle">Set up</p>
@@ -16,7 +20,7 @@ export default function SetupPage() {
       <p className="mt-4 rounded-[10px] border border-line bg-panel px-4 py-3 text-[14px] text-ink-2">
         This is a shared sandbox. Use made-up names and numbers, never real vendor or banking details. Reset clears everything you add.
       </p>
-      <SetupForm />
+      <SetupForm company={company ?? ""} />
     </div>
   );
 }

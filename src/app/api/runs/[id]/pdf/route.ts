@@ -21,7 +21,7 @@ export async function GET(_req: NextRequest, ctx: RouteContext<"/api/runs/[id]/p
     const view = evidenceView(store, id);
     if (!view) return Response.json({ error: "Run not found." }, { status: 404 });
     if (view.run.status !== "ended") return Response.json({ error: "The run has not finished." }, { status: 409 });
-    const payer = store.getRequestDetail(view.run.request_id)?.vendor.payer_name || fallbackPayer;
+    const payer = view.run.caller_company || store.getRequestDetail(view.run.request_id)?.vendor.payer_name || fallbackPayer;
     input = { ...view, payer, jsonUrl: `${base}/api/runs/${id}/evidence?download=1` };
   }
 

@@ -70,7 +70,8 @@ export class RunController {
   }
 
   /** Runs preflight and issues a single-use call link for the vendor's contact of record. */
-  createRun(requestId: string): { run: Run; callUrl: string } {
+  /** Starts a run. The caller is the vendor's payer, else the visitor's company, else the app default. */
+  createRun(requestId: string, visitorCompany?: string | null): { run: Run; callUrl: string } {
     const { store } = this.opts;
     const detail = store.getRequestDetail(requestId);
     if (!detail) throw new RunError("Request not found.", "not_found");
@@ -89,6 +90,7 @@ export class RunController {
       call_token: randomBytes(32).toString("base64url"),
       token_expires_at: new Date(started + CALL_LINK_TTL_MS).toISOString(),
       started_at: new Date(started).toISOString(),
+      caller_company: detail.vendor.payer_name || visitorCompany || this.opts.company,
     };
     store.createRun(run);
     this.record(run.id, "state", { state: "ringing", numberOfRecord: check.numberOfRecord, provenance: check.checks });
@@ -96,15 +98,15 @@ export class RunController {
   }
 
   /** Validates a call link without claiming it. */
-  /** Who is calling: the payer set for this vendor, or the app's default company. */
-  callerCompany(requestId: string): string {
-    return this.opts.store.getRequestDetail(requestId)?.vendor.payer_name || this.opts.company;
+  /** Who the agent speaks for on a run, fixed when the run was created. */
+  callerCompany(run: Run): string {
+    return run.caller_company || this.opts.store.getRequestDetail(run.request_id)?.vendor.payer_name || this.opts.company;
   }
 
   /** The caller's name for a call link, even one that is no longer valid. */
   companyForToken(token: string): string {
     const run = this.opts.store.getRunByToken(token);
-    return run ? this.callerCompany(run.request_id) : this.opts.company;
+    return run ? this.callerCompany(run) : this.opts.company;
   }
 
   inspectToken(token: string): { ok: true; run: Run } | { ok: false; reason: string } {
@@ -128,7 +130,7 @@ export class RunController {
     const challenges = buildChallenges(detail, run.id);
     const agent = this.agentFactory({
       apiKey: this.opts.apiKey,
-      company: this.callerCompany(run.request_id),
+      company: this.callerCompany(run),
       detail,
       challenges,
       inputEncoding: channel.inputEncoding,

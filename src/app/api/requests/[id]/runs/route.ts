@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { visitorCompany } from "@/lib/company";
 import { allow, clientIp } from "@/server/rate-limit";
 import { getRunController, isRunError, type RunError } from "@/server/runs";
 import { publicRun } from "@/server/views";
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest, ctx: RouteContext<"/api/requests/[i
     );
   }
   try {
-    const { run, callUrl } = getRunController().createRun(id);
+    const { run, callUrl } = getRunController().createRun(id, await visitorCompany());
     return Response.json({ run: publicRun(run), callUrl }, { status: 201 });
   } catch (err) {
     if (isRunError(err)) return Response.json({ error: err.message, code: err.code }, { status: STATUS[err.code] });
