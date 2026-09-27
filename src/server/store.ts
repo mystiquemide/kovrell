@@ -192,13 +192,40 @@ export function createStore(db: Db) {
       return { request, vendor, payment, changes, invoices };
     },
 
-    listVendors(): (Vendor & { last_change_at: string | null })[] {
+    listVendors(): (Vendor & { last_change_at: string | null; held_request_id: string | null })[] {
       return db
         .prepare(
-          `SELECT v.*, (SELECT MAX(changed_at) FROM vendor_changes c WHERE c.vendor_id = v.id) AS last_change_at
+          `SELECT v.*, (SELECT MAX(changed_at) FROM vendor_changes c WHERE c.vendor_id = v.id) AS last_change_at,
+             (SELECT r.id FROM requests r WHERE r.vendor_id = v.id AND r.status = 'held' ORDER BY r.received_at DESC LIMIT 1) AS held_request_id
            FROM vendors v ORDER BY v.name`,
         )
-        .all() as (Vendor & { last_change_at: string | null })[];
+        .all() as (Vendor & { last_change_at: string | null; held_request_id: string | null })[];
+    },
+
+    /** Paid invoice numbers, newest first. The totals and dates stay out: they are the call's answers. */
+    paidInvoiceNumbers(vendorId: string, limit: number): string[] {
+      return (
+        db.prepare("SELECT number FROM invoices WHERE vendor_id = ? AND paid_on IS NOT NULL ORDER BY issued_on DESC LIMIT ?").all(vendorId, limit) as {
+          number: string;
+        }[]
+      ).map((r) => r.number);
+    },
+
+    listRunsForVendor(vendorId: string): Run[] {
+      return db
+        .prepare("SELECT r.* FROM runs r JOIN requests q ON q.id = r.request_id WHERE q.vendor_id = ? ORDER BY r.started_at DESC")
+        .all(vendorId) as Run[];
+    },
+
+    heldRequestForVendor(vendorId: string): (ChangeRequest & { amount_cents: number }) | null {
+      return (
+        (db
+          .prepare(
+            `SELECT r.*, p.amount_cents FROM requests r JOIN payments p ON p.id = r.payment_id
+             WHERE r.vendor_id = ? AND r.status = 'held' ORDER BY r.received_at DESC LIMIT 1`,
+          )
+          .get(vendorId) as (ChangeRequest & { amount_cents: number }) | undefined) ?? null
+      );
     },
 
     getVendor(id: string): { vendor: Vendor; changes: VendorChange[] } | null {

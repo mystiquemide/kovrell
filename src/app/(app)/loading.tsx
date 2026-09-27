@@ -2,7 +2,7 @@
 export default function Loading() {
   return (
     <div aria-busy="true" aria-live="polite">
-      <p className="label text-subtle">Loading sample ledger</p>
+      <p className="label text-subtle">Loading…</p>
       <div className="mt-4 h-10 w-[min(420px,80%)] animate-pulse rounded-[8px] bg-chip" />
       <div className="mt-12 border-t border-line">
         {[0, 1, 2].map((i) => (

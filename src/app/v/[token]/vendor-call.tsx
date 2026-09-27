@@ -86,7 +86,7 @@ export function VendorCall({ token, company, callerLine }: { token: string; comp
         audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: true, channelCount: 1 },
       });
     } catch {
-      setError("Microphone access is needed to take this call.");
+      setError("This call needs your microphone. Allow it in your browser's address bar, then reload this page.");
       setPhase("error");
       return;
     }
@@ -149,7 +149,7 @@ export function VendorCall({ token, company, callerLine }: { token: string; comp
       finish("error");
     };
     ws.onerror = () => {
-      setError("The call could not connect.");
+      setError("The call couldn't connect. Check your internet connection, then ask the company that called you to try again.");
       finish("error");
     };
   }

@@ -26,7 +26,7 @@ export function CallButton({
     const res = await fetch(`/api/requests/${requestId}/runs`, { method: "POST" }).catch(() => null);
     const body = res ? await res.json().catch(() => ({})) : {};
     if (!res || !res.ok) {
-      setError(body.error ?? "Could not start the verification run. Nothing was changed.");
+      setError(body.error ?? "The call couldn't start. Nothing was changed. Try again in a moment.");
       setBusy(false);
       return;
     }

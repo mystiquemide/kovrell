@@ -45,18 +45,22 @@ export function SetupForm({ company }: { company: string }) {
   ]);
   const [change, setChange] = useState({ new_bank_name: "Bank of America", new_account_last4: "6612", payment: "31,400.00", channel: "email", webhook_url: "" });
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<string[]>([]);
 
   const setInvoice = (i: number, patch: Partial<InvoiceRow>) => setInvoices((rows) => rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    setError(null);
+    setErrors([]);
     const post = (url: string, body: unknown) =>
       fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
         .then(async (r) => ({ ok: r.ok, body: await r.json().catch(() => ({})) }))
-        .catch(() => ({ ok: false, body: { error: "Could not reach Kovrell. Nothing was saved." } }));
+        .catch(() => ({ ok: false, body: { error: "Kovrell couldn't be reached. Nothing was saved. Check your connection and try again." } }));
+    const fail = (body: { error?: string; fields?: Record<string, string> }, fallback: string) => {
+      setErrors(body.fields ? Object.values(body.fields) : [body.error ?? fallback]);
+      setBusy(false);
+    };
 
     const { payer_name, ...rest } = vendor;
     const added = await post("/api/vendors", {
@@ -65,11 +69,7 @@ export function SetupForm({ company }: { company: string }) {
       invoices: invoices.map((r) => ({ number: r.number, amount_cents: toCents(r.amount), paid_on: r.paid_on })),
       payment_amount_cents: toCents(change.payment),
     });
-    if (!added.ok) {
-      setError(added.body.error ?? "Could not add the vendor.");
-      setBusy(false);
-      return;
-    }
+    if (!added.ok) return fail(added.body, "The vendor couldn't be added. Nothing was saved. Try again.");
     const request = await post("/api/requests", {
       vendor_id: added.body.vendor.id,
       channel: change.channel,
@@ -77,11 +77,7 @@ export function SetupForm({ company }: { company: string }) {
       new_account_last4: change.new_account_last4,
       ...(change.webhook_url.trim() ? { webhook_url: change.webhook_url.trim() } : {}),
     });
-    if (!request.ok) {
-      setError(request.body.error ?? "Could not create the change request.");
-      setBusy(false);
-      return;
-    }
+    if (!request.ok) return fail(request.body, "The vendor was added, but the change request wasn't. Open Requests to try again.");
     router.push(`/requests/${request.body.request.id}`);
   }
 
@@ -231,7 +227,19 @@ export function SetupForm({ company }: { company: string }) {
         <button type="submit" disabled={busy} className={PRIMARY}>
           {busy ? "Adding" : "Add vendor and hold payment"} {!busy && <Arrow />}
         </button>
-        <p className={`text-[14px] ${error ? "text-fail" : "text-muted"}`}>{error ?? "Next you'll call the vendor and play them yourself."}</p>
+        {errors.length === 0 && <p className="text-[14px] text-muted">Next you&apos;ll call the vendor and play them yourself.</p>}
+      </div>
+      <div role="alert" aria-live="assertive">
+        {errors.length > 0 && (
+          <div className="mt-4 rounded-[10px] border border-fail/40 px-4 py-3 text-[14px] text-fail">
+            <p className="font-medium">{errors.length === 1 ? "One thing to fix:" : `${errors.length} things to fix:`}</p>
+            <ul className="mt-1 list-disc pl-5">
+              {errors.map((e) => (
+                <li key={e}>{e}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </form>
   );

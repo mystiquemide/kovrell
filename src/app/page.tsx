@@ -25,6 +25,13 @@ const STATS = [
   { n: "17%", text: "use AI against payments fraud", source: "AFP 2026 press release", href: AFP_RELEASE },
 ];
 
+const INTEGRATION = [
+  { title: "Sync vendors and paid invoices", body: "The contact of record, the bank on file, and recent paid invoices, from your vendor master.", code: "POST /api/vendors" },
+  { title: "Hold the payment on a bank change", body: "Send each change request. The vendor's next payment is held until a call decides it.", code: "POST /api/requests" },
+  { title: "Get a signed verdict", body: "When the call ends, your webhook gets the verdict and payment status, signed with HMAC-SHA256.", code: "verification.completed" },
+  { title: "File the evidence", body: "Every run has a sealed JSON record and a PDF report for the audit file.", code: "GET /api/runs/:id/pdf" },
+];
+
 const CONTROLS: { title: string; body: string; icon: ReactNode }[] = [
   {
     title: "Number of record only",
@@ -38,7 +45,7 @@ const CONTROLS: { title: string; body: string; icon: ReactNode }[] = [
   },
   {
     title: "Ledger challenge",
-    body: "Three questions only the real vendor can answer, drawn from invoices and payments. The agent never speaks the answers.",
+    body: "Three questions only the real vendor can answer, drawn at random from recent paid invoices on every call. The agent never hears the answers.",
     icon: <path d="M6 3h9l4 4v14H6zM9 12h7M9 16h7" />,
   },
   {
@@ -119,9 +126,9 @@ export default function Landing() {
               <Link href="/requests" className={ON_PHOTO_LIGHT}>
                 See a live verification
               </Link>
-              <ScrollLink to="how" className={ON_PHOTO_DARK}>
-                How it works
-              </ScrollLink>
+              <Link href="/setup" className={ON_PHOTO_DARK}>
+                Try it on your own vendor
+              </Link>
             </div>
             <div className="reveal mt-8">
               <CallBar label={barLabel} />
@@ -274,9 +281,14 @@ export default function Landing() {
                 The recording, the transcript, every tool call, and the expected versus heard answers, sealed with sha256. Download this run and check
                 the hash yourself.
               </p>
-              <a href={SHOWCASE_RECORD} download className={`${PRIMARY} mt-8`}>
-                Download the sealed record <Arrow />
-              </a>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <a href={SHOWCASE_RECORD} download className={PRIMARY}>
+                  Download the sealed record <Arrow />
+                </a>
+                <a href={`/api/runs/${run.run.id}/pdf`} download className={SECONDARY}>
+                  Download the PDF report
+                </a>
+              </div>
               <div className="mt-8">
                 <Seal hash={run.sha256} downloadHref={SHOWCASE_RECORD} />
               </div>
@@ -360,6 +372,32 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* Integration */}
+        <section className="border-t border-line bg-canvas">
+          <div className="mx-auto grid max-w-[1280px] grid-cols-1 gap-12 px-4 py-24 sm:px-8 lg:grid-cols-[1fr_2fr]">
+            <div>
+              <p className="eyebrow text-ink">Integration</p>
+              <h2 className="heading mt-4 text-[36px] text-ink sm:text-[40px]">Plugs into your payment run.</h2>
+              <p className="mt-3 max-w-[360px] text-[16px] leading-[1.55] text-muted">
+                Your ERP keeps the vendor master and the payment schedule. Kovrell holds the payment, makes the call, and tells your ERP what to do.
+              </p>
+              <Link href="/integrate" className="mt-6 inline-block text-[15px] text-ink underline underline-offset-4">
+                How to integrate
+              </Link>
+            </div>
+            <ol className="grid gap-x-10 gap-y-8 sm:grid-cols-2">
+              {INTEGRATION.map((step, i) => (
+                <li key={step.title} className="border-t border-line pt-5">
+                  <p className="data text-[13px] text-subtle">{String(i + 1).padStart(2, "0")}</p>
+                  <p className="subheading mt-2 text-[18px] text-ink">{step.title}</p>
+                  <p className="mt-1.5 text-[15px] leading-[1.5] text-muted">{step.body}</p>
+                  <p className="data mt-3 text-[13px] text-ink-2">{step.code}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
         {/* Built on */}
         <section className="border-t border-line bg-panel">
           <div className="mx-auto grid max-w-[1280px] grid-cols-1 gap-12 px-4 py-24 sm:px-8 lg:grid-cols-[1fr_2fr]">
@@ -429,9 +467,9 @@ export default function Landing() {
               <Link href="/requests" className={ON_PHOTO_LIGHT}>
                 See a live verification
               </Link>
-              <ScrollLink to="evidence" className={ON_PHOTO_DARK}>
-                Inspect the evidence
-              </ScrollLink>
+              <Link href="/setup" className={ON_PHOTO_DARK}>
+                Try it on your own vendor
+              </Link>
               <Link href="/integrate" className={ON_PHOTO_DARK}>
                 How to integrate
               </Link>
@@ -446,30 +484,37 @@ export default function Landing() {
         <footer className="border-t border-line bg-canvas">
           <div className="mx-auto flex max-w-[1280px] flex-wrap items-start justify-between gap-10 px-4 py-14 sm:px-8">
             <Wordmark />
-            <div className="grid grid-cols-2 gap-x-16 gap-y-2">
-              <p className="label text-pass">Product</p>
-              <p className="label text-pass">Proof</p>
-              <Link href="/requests" className="text-[14px] text-muted hover:text-ink">
-                Requests
-              </Link>
-              <ScrollLink to="evidence" className="text-[14px] text-muted hover:text-ink">
-                Evidence
-              </ScrollLink>
-              <Link href="/vendors" className="text-[14px] text-muted hover:text-ink">
-                Vendors
-              </Link>
-              <ScrollLink to="numbers" className="text-[14px] text-muted hover:text-ink">
-                Numbers
-              </ScrollLink>
-              <Link href="/evidence" className="text-[14px] text-muted hover:text-ink">
-                Runs
-              </Link>
-              <Link href="/integrate" className="text-[14px] text-muted hover:text-ink">
-                Integrate
-              </Link>
-              <a href={SHOWCASE_RECORD} download className="text-[14px] text-muted hover:text-ink">
-                Sealed record
-              </a>
+            <div className="grid grid-cols-2 gap-x-16">
+              <div className="flex flex-col gap-2">
+                <p className="label text-pass">Product</p>
+                <Link href="/requests" className="text-[14px] text-muted hover:text-ink">
+                  Requests
+                </Link>
+                <Link href="/setup" className="text-[14px] text-muted hover:text-ink">
+                  Set up
+                </Link>
+                <Link href="/vendors" className="text-[14px] text-muted hover:text-ink">
+                  Vendors
+                </Link>
+                <Link href="/evidence" className="text-[14px] text-muted hover:text-ink">
+                  Runs
+                </Link>
+                <a href={SHOWCASE_RECORD} download className="text-[14px] text-muted hover:text-ink">
+                  Sealed record
+                </a>
+              </div>
+              <div className="flex flex-col gap-2">
+                <p className="label text-pass">Proof</p>
+                <ScrollLink to="evidence" className="text-[14px] text-muted hover:text-ink">
+                  Evidence
+                </ScrollLink>
+                <ScrollLink to="numbers" className="text-[14px] text-muted hover:text-ink">
+                  Numbers
+                </ScrollLink>
+                <Link href="/integrate" className="text-[14px] text-muted hover:text-ink">
+                  Integrate
+                </Link>
+              </div>
             </div>
           </div>
         </footer>

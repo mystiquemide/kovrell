@@ -128,7 +128,7 @@ export function LiveCall({ initial, callPath }: { initial: View; callPath: strin
       {!ended && run.status === "ringing" && !expired && (
         <section className="mt-10 rounded-[5.6px] border border-line bg-panel p-6">
           <p className="label text-subtle">Call link for the contact of record</p>
-          <p className="data mt-3 break-all text-[14px] text-ink">{callUrl ?? "Preparing link"}</p>
+          <p className="data mt-3 break-all text-[14px] text-ink" aria-live="polite">{callUrl ?? "Creating the call link…"}</p>
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <button
               className={SECONDARY}
@@ -160,7 +160,7 @@ export function LiveCall({ initial, callPath }: { initial: View; callPath: strin
         <details open className="mt-6 rounded-[12px] border border-line bg-panel p-6">
           <summary className="cursor-pointer list-none">
             <span className="label text-subtle">Playing the vendor?</span>
-            <span className="ml-3 text-[14px] text-muted">What the real {initial.testerSheet.vendorName} would know, from the sample ledger.</span>
+            <span className="ml-3 text-[14px] text-muted">What the real {initial.testerSheet.vendorName} would know, {initial.testerSheet.fromSample ? "from the sample ledger" : "from the invoices you entered"}.</span>
           </summary>
           <div className="mt-5 grid gap-6 sm:grid-cols-2">
             <div>

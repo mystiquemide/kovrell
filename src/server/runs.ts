@@ -4,6 +4,7 @@ import { AgentSession, type AgentEvent, type AgentSessionOptions, type EndResult
 import type { CallChannel } from "./channels";
 import type { Run, RunEvent, Store } from "./store";
 import { buildChallenges, type Challenge } from "./verification/challenges";
+import { COPY } from "../lib/messages";
 import { deliverWebhook, type DeliverOptions } from "./webhook";
 import { preflight } from "./verification/provenance";
 import { sealWithRetry, type FetchSession } from "./evidence";
@@ -74,12 +75,12 @@ export class RunController {
   createRun(requestId: string, visitorCompany?: string | null): { run: Run; callUrl: string } {
     const { store } = this.opts;
     const detail = store.getRequestDetail(requestId);
-    if (!detail) throw new RunError("Request not found.", "not_found");
-    if (detail.request.status !== "held") throw new RunError("This request already has a decision.", "not_held");
+    if (!detail) throw new RunError(COPY.requestNotFound, "not_found");
+    if (detail.request.status !== "held") throw new RunError(COPY.decided, "not_held");
     const check = preflight(detail, this.now());
-    if (check.locked) throw new RunError(check.reason ?? "Call locked by provenance checks.", "locked");
+    if (check.locked) throw new RunError(check.reason ?? COPY.locked, "locked");
     const current = store.latestRunForRequest(requestId);
-    if (current && current.status === "live") throw new RunError("A verification call is already in progress.", "busy");
+    if (current && current.status === "live") throw new RunError(COPY.busy, "busy");
     buildChallenges(detail); // fail early if the ledger cannot support the questions
 
     const started = this.now();

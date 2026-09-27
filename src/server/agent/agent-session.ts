@@ -122,7 +122,7 @@ export class AgentSession {
     this.timers.push(
       setTimeout(() => {
         if (!this.ready) {
-          this.emit({ kind: "error", code: "ready_timeout", message: "Voice agent did not become ready." });
+          this.emit({ kind: "error", code: "ready_timeout", message: "The verification agent didn't start. Nothing about your payment has changed, and they'll call again." });
           this.end("ready_timeout");
         }
       }, READY_TIMEOUT_MS),
@@ -272,7 +272,7 @@ export class AgentSession {
     let verdict = this.verification.verdict();
     // Fail closed: a PASS only stands if the agent reached finish_verification.
     if (verdict.verdict === "PASS" && !this.finished) {
-      verdict = { verdict: "INCONCLUSIVE", reason: `Call ended before verification finished (${reason}).` };
+      verdict = { verdict: "INCONCLUSIVE", reason: "The call ended before all checks were done. The payment stays on hold. You can call again." };
     }
     this.emit({ kind: "state", state: "ended", reason });
     const result = { reason, verdict, sessionId: this.sessionId, finished: this.finished };

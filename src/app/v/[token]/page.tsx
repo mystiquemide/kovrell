@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import { Wordmark } from "@/components/mark";
 import { getRunController } from "@/server/runs";
 import { VendorCall } from "./vendor-call";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: PageProps<"/v/[token]">): Promise<Metadata> {
+  const { token } = await params;
+  return { title: { absolute: `Payment details verification | ${getRunController().companyForToken(token)}` } };
+}
 
 export default async function VendorCallPage({ params }: PageProps<"/v/[token]">) {
   const { token } = await params;

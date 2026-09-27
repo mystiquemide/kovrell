@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { buildEvidencePdf } from "@/server/evidence-pdf";
+import { COPY } from "@/lib/messages";
 import { getStore } from "@/server/store";
 import { evidenceView } from "@/server/views";
 import { SHOWCASE_RUN_ID, showcaseEvidenceView } from "@/showcase";
@@ -19,8 +20,8 @@ export async function GET(_req: NextRequest, ctx: RouteContext<"/api/runs/[id]/p
   } else {
     const store = getStore();
     const view = evidenceView(store, id);
-    if (!view) return Response.json({ error: "Run not found." }, { status: 404 });
-    if (view.run.status !== "ended") return Response.json({ error: "The run has not finished." }, { status: 409 });
+    if (!view) return Response.json({ error: COPY.runNotFound }, { status: 404 });
+    if (view.run.status !== "ended") return Response.json({ error: COPY.runOpen }, { status: 409 });
     const payer = view.run.caller_company || store.getRequestDetail(view.run.request_id)?.vendor.payer_name || fallbackPayer;
     input = { ...view, payer, jsonUrl: `${base}/api/runs/${id}/evidence?download=1` };
   }

@@ -18,10 +18,10 @@ describe("webhook url checks", () => {
 
   it.each([
     ["http://hooks.example.com/x", "https"],
-    ["https://user:pw@hooks.example.com/x", "credentials"],
-    ["https://hooks.example.com:3199/x", "default https port"],
-    ["https://169.254.169.254/latest", "public address"],
-    ["not a url", "valid URL"],
+    ["https://user:pw@hooks.example.com/x", "username and password"],
+    ["https://hooks.example.com:3199/x", "standard https port"],
+    ["https://169.254.169.254/latest", "public https address"],
+    ["not a url", "valid web address"],
   ])("rejects %s", async (url, reason) => {
     const r = await checkWebhookUrl(url, publicDns);
     expect(r.ok).toBe(false);
@@ -66,7 +66,7 @@ describe("deliverWebhook", () => {
     const ok = await deliverWebhook(store, "req_northwind", {}, { fetchImpl, resolve: async () => ["10.0.0.5"], delaysMs: [0] });
     expect(ok).toBe(false);
     expect(called).toBe(false);
-    expect(store.getWebhook("req_northwind")?.last_error).toContain("public address");
+    expect(store.getWebhook("req_northwind")?.last_error).toContain("public https address");
   });
 
   it("does nothing without a registered webhook", async () => {

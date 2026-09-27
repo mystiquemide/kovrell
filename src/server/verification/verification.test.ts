@@ -193,7 +193,9 @@ describe("VerificationSession verdicts", () => {
     session.checkChallenge("q1", "96325");
     const v = session.verdict();
     expect(v.verdict).toBe("INCONCLUSIVE");
-    expect(v.reason).toContain("readback of new account");
+    expect(v.reason).toContain("Readback of new account");
+    expect(v.reason).toContain("INV-4502 total");
+    expect(v.reason).toContain("The payment stays on hold.");
   });
 
   it("INCONCLUSIVE: nothing happened", () => {

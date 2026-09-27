@@ -52,7 +52,7 @@ curl ${BASE}/api/runs/<run id>
     title: "Keep the evidence",
     body: "Every run ends with a sealed record: recording, transcript, tool calls, expected versus heard answers, and a sha256 over all of it. The PDF report is the readable copy an auditor files.",
     code: `curl -o record.json "${BASE}/api/runs/<run id>/evidence?download=1"
-curl -o report.pdf "${BASE}/api/runs/<run id>/pdf"   # the same pack as a PDF for the audit file`,
+curl -o report.pdf "${BASE}/api/runs/<run id>/pdf"   # PDF for the audit file`,
   },
 ];
 

@@ -32,8 +32,12 @@ export function checkLabels(detail: NonNullable<ReturnType<Store["getRequestDeta
 export function vendorView(store: Store, id: string, now = Date.now()) {
   const data = store.getVendor(id);
   if (!data) return null;
+  const runs = store.listRunsForVendor(id).map((r) => ({ ...publicRun(r), sha256: store.getEvidence(r.id)?.sha256 ?? null }));
   return {
     vendor: data.vendor,
+    questionPool: store.paidInvoiceNumbers(id, QUESTION_POOL_SIZE),
+    heldRequest: store.heldRequestForVendor(id),
+    runs,
     changes: data.changes.map((c) => ({
       ...c,
       recent: c.old_value !== null && now - Date.parse(c.changed_at) < PROVENANCE_WINDOW_DAYS * 86_400_000,
@@ -165,6 +169,8 @@ export function testerSheet(detail: NonNullable<ReturnType<Store["getRequestDeta
   return {
     contactName: detail.vendor.contact_name,
     vendorName: detail.vendor.name,
+    /** Sample vendors come with the sandbox. The rest were added on Set up. */
+    fromSample: ["v_northwind", "v_halden", "v_brightline"].includes(detail.vendor.id),
     newBank: `${detail.request.new_bank_name}, ending ${detail.request.new_account_last4}`,
     answers,
   };

@@ -31,19 +31,19 @@ export async function checkWebhookUrl(raw: string, resolve: Resolve = defaultRes
   try {
     url = new URL(raw);
   } catch {
-    return { ok: false, reason: "Webhook URL is not a valid URL." };
+    return { ok: false, reason: "That isn't a valid web address. Check it for typos." };
   }
-  if (url.protocol !== "https:") return { ok: false, reason: "Webhook URL must use https." };
-  if (url.username || url.password) return { ok: false, reason: "Webhook URL can't contain credentials." };
-  if (url.port && url.port !== "443") return { ok: false, reason: "Webhook URL must use the default https port." };
+  if (url.protocol !== "https:") return { ok: false, reason: "Use an https address, like a webhook.site URL." };
+  if (url.username || url.password) return { ok: false, reason: "Remove the username and password from the address." };
+  if (url.port && url.port !== "443") return { ok: false, reason: "Use the standard https port. Remove the :port from the address." };
   const host = url.hostname.replace(/^\[|\]$/g, "");
   let addresses: string[];
   try {
     addresses = isIP(host) ? [host] : await resolve(host);
   } catch {
-    return { ok: false, reason: "Webhook host could not be resolved." };
+    return { ok: false, reason: "We couldn't find that web address. Check it for typos." };
   }
-  if (!addresses.length || addresses.some(isPrivateAddress)) return { ok: false, reason: "Webhook URL must point to a public address." };
+  if (!addresses.length || addresses.some(isPrivateAddress)) return { ok: false, reason: "Use a public https address, like a webhook.site URL. Private and local addresses are blocked." };
   return { ok: true, url };
 }
 

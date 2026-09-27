@@ -115,10 +115,12 @@ export class VerificationSession {
     }
     const missing = this.list()
       .filter((c) => c.status === "pending" && c.key !== "requested")
-      .map((c) => c.label.toLowerCase());
+      .map((c) => c.label);
     return {
       verdict: "INCONCLUSIVE",
-      reason: missing.length ? `Call ended before: ${missing.join(", ")}.` : "Not enough confirmed checks.",
+      reason: missing.length
+        ? `The call ended before these checks: ${missing.join(", ")}. The payment stays on hold.`
+        : "Not enough checks were confirmed. The payment stays on hold.",
     };
   }
 

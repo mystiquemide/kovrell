@@ -17,7 +17,7 @@ export function ResetLedger() {
     const body = res ? await res.json().catch(() => ({})) : {};
     setBusy(false);
     if (!res || !res.ok) {
-      setMessage(body.error ?? "Could not reset the ledger.");
+      setMessage(body.error ?? "The sample ledger couldn't reset. Try again in a minute.");
       return;
     }
     setMessage("Ledger reset. Every request is held again.");

@@ -5,10 +5,19 @@ import { CHANNEL_LABEL, dateOnly, dateTime, duration, money } from "@/lib/format
 import { getStore } from "@/server/store";
 import { requestView } from "@/server/views";
 import { CallButton } from "@/components/call-button";
+import { COPY } from "@/lib/messages";
+import { defaultCompany, visitorCompany } from "@/lib/company";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
 const PROVENANCE_RESULT = { ok: "text-pass", fail: "text-fail", info: "text-muted" } as const;
+
+export async function generateMetadata({ params }: PageProps<"/requests/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  const vendor = getStore().getRequestDetail(id)?.vendor.name;
+  return { title: vendor ? `${vendor} bank change` : "Request" };
+}
 
 export default async function RequestPage({ params }: PageProps<"/requests/[id]">) {
   const { id } = await params;
@@ -16,6 +25,7 @@ export default async function RequestPage({ params }: PageProps<"/requests/[id]"
   if (!view) notFound();
   const { request, vendor, payment, preflight, questionPool, webhook, runs, openRunId, dueInDays: due } = view;
   const locked = request.status === "held" && preflight.locked;
+  const caller = vendor.payer_name || (await visitorCompany()) || defaultCompany();
   const decided = request.status !== "held";
   const clear = preflight.checks.filter((c) => c.status !== "fail").length;
 
@@ -144,7 +154,7 @@ export default async function RequestPage({ params }: PageProps<"/requests/[id]"
           <CallButton
             requestId={request.id}
             contactName={vendor.contact_name}
-            disabledReason={locked ? (preflight.reason ?? "Provenance checks failed. Verify in person.") : null}
+            disabledReason={locked ? (preflight.reason ?? COPY.locked) : null}
           />
         )}
       </section>
@@ -172,7 +182,7 @@ export default async function RequestPage({ params }: PageProps<"/requests/[id]"
 
       <p className="mt-14 text-[14px] text-subtle">
         Contact of record: {vendor.contact_name}, <span className="data">{vendor.contact_phone}</span>.{" "}
-        {vendor.payer_name && <>Calls on behalf of {vendor.payer_name}. </>}
+        Calls on behalf of {caller}. 
         <Link href={`/vendors/${vendor.id}`} className="underline-offset-4 hover:text-ink hover:underline">
           Vendor record
         </Link>

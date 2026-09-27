@@ -129,7 +129,7 @@ export async function buildEvidencePdf(input: EvidenceReportInput): Promise<Uint
   }
 
   const { run, vendor, request, payment, evidence } = input;
-  const verdict = run.verdict ?? "NOT FINISHED";
+  const verdict = run.verdict ?? "In progress";
   const verdictColor = verdict === "PASS" ? PASS : verdict === "FAIL" ? FAIL : MUTED;
 
   // Header
