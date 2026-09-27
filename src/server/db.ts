@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS vendors (
   contact_email TEXT NOT NULL,
   bank_name TEXT NOT NULL,
   account_last4 TEXT NOT NULL,
-  routing_last4 TEXT NOT NULL
+  routing_last4 TEXT NOT NULL,
+  payer_name TEXT
 );
 CREATE TABLE IF NOT EXISTS vendor_changes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -100,5 +101,8 @@ export function openDb(path: string): Db {
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
   db.exec(SCHEMA);
+  // Databases created before per-vendor payer names get the column added in place.
+  const cols = db.prepare("PRAGMA table_info(vendors)").all() as { name: string }[];
+  if (!cols.some((c) => c.name === "payer_name")) db.exec("ALTER TABLE vendors ADD COLUMN payer_name TEXT");
   return db;
 }

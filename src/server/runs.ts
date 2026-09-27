@@ -93,6 +93,17 @@ export class RunController {
   }
 
   /** Validates a call link without claiming it. */
+  /** Who is calling: the payer set for this vendor, or the app's default company. */
+  callerCompany(requestId: string): string {
+    return this.opts.store.getRequestDetail(requestId)?.vendor.payer_name || this.opts.company;
+  }
+
+  /** The caller's name for a call link, even one that is no longer valid. */
+  companyForToken(token: string): string {
+    const run = this.opts.store.getRunByToken(token);
+    return run ? this.callerCompany(run.request_id) : this.opts.company;
+  }
+
   inspectToken(token: string): { ok: true; run: Run } | { ok: false; reason: string } {
     const run = this.opts.store.getRunByToken(token);
     if (!run) return { ok: false, reason: "This call link is not valid." };
@@ -114,7 +125,7 @@ export class RunController {
     const challenges = buildChallenges(detail, run.id);
     const agent = this.agentFactory({
       apiKey: this.opts.apiKey,
-      company: this.opts.company,
+      company: this.callerCompany(run.request_id),
       detail,
       challenges,
       inputEncoding: channel.inputEncoding,

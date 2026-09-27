@@ -159,6 +159,7 @@ export default async function RequestPage({ params }: PageProps<"/requests/[id]"
 
       <p className="mt-14 text-[14px] text-subtle">
         Contact of record: {vendor.contact_name}, <span className="data">{vendor.contact_phone}</span>.{" "}
+        {vendor.payer_name && <>Calls on behalf of {vendor.payer_name}. </>}
         <Link href={`/vendors/${vendor.id}`} className="underline-offset-4 hover:text-ink hover:underline">
           Vendor record
         </Link>

@@ -30,6 +30,7 @@ function toCents(v: string): number {
 export function SetupForm() {
   const router = useRouter();
   const [vendor, setVendor] = useState({
+    payer_name: "",
     name: "Pine Ridge Lumber",
     contact_name: "Alex Morgan",
     contact_phone: "+1 503 555 0164",
@@ -57,8 +58,10 @@ export function SetupForm() {
         .then(async (r) => ({ ok: r.ok, body: await r.json().catch(() => ({})) }))
         .catch(() => ({ ok: false, body: { error: "Could not reach Kovrell. Nothing was saved." } }));
 
+    const { payer_name, ...rest } = vendor;
     const added = await post("/api/vendors", {
-      ...vendor,
+      ...rest,
+      ...(payer_name.trim() ? { payer_name: payer_name.trim() } : {}),
       invoices: invoices.map((r) => ({ number: r.number, amount_cents: toCents(r.amount), paid_on: r.paid_on })),
       payment_amount_cents: toCents(change.payment),
     });
@@ -89,6 +92,16 @@ export function SetupForm() {
           <h2 className="subheading text-[20px] text-ink">Vendor of record</h2>
           <p className="mt-2 text-[15px] leading-[1.55] text-muted">What your vendor master already holds. Kovrell only ever calls this contact.</p>
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <Field label="Your company" hint="Who the agent calls on behalf of. Leave blank to call as Acme Manufacturing.">
+                <input
+                  className={FIELD}
+                  placeholder="Acme Manufacturing"
+                  value={vendor.payer_name}
+                  onChange={(e) => setVendor({ ...vendor, payer_name: e.target.value })}
+                />
+              </Field>
+            </div>
             <Field label="Vendor">
               <input className={FIELD} value={vendor.name} onChange={(e) => setVendor({ ...vendor, name: e.target.value })} required />
             </Field>

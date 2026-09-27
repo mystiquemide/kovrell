@@ -16,6 +16,7 @@ const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD");
 const CreateVendor = z
   .object({
     name,
+    payer_name: name.optional(),
     contact_name: name,
     contact_phone: z.string().trim().min(7).max(24).regex(/^[+\d ()-]+$/, "Phone digits only"),
     contact_email: z.string().trim().max(80).optional().default(""),

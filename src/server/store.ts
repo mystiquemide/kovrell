@@ -14,6 +14,8 @@ export interface Vendor {
   bank_name: string;
   account_last4: string;
   routing_last4: string;
+  /** The company paying this vendor, for vendors added on Set up. Sample vendors use the app default. */
+  payer_name?: string | null;
 }
 
 export interface VendorChange {
@@ -323,6 +325,7 @@ export function createStore(db: Db) {
     createVendorLedger(
       input: {
         name: string;
+        payer_name?: string;
         contact_name: string;
         contact_phone: string;
         contact_email: string;
@@ -340,9 +343,9 @@ export function createStore(db: Db) {
       const onFile = new Date(now - input.number_on_file_days * day).toISOString();
       db.transaction(() => {
         db.prepare(
-          `INSERT INTO vendors (id, name, contact_name, contact_phone, contact_email, bank_name, account_last4, routing_last4)
-           VALUES (?, ?, ?, ?, ?, ?, ?, '0000')`,
-        ).run(id, input.name, input.contact_name, input.contact_phone, input.contact_email, input.bank_name, input.account_last4);
+          `INSERT INTO vendors (id, name, contact_name, contact_phone, contact_email, bank_name, account_last4, routing_last4, payer_name)
+           VALUES (?, ?, ?, ?, ?, ?, ?, '0000', ?)`,
+        ).run(id, input.name, input.contact_name, input.contact_phone, input.contact_email, input.bank_name, input.account_last4, input.payer_name || null);
         const change = db.prepare(
           `INSERT INTO vendor_changes (vendor_id, field, old_value, new_value, changed_at, source) VALUES (?, ?, ?, ?, ?, ?)`,
         );

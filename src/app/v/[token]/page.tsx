@@ -6,8 +6,9 @@ export const dynamic = "force-dynamic";
 
 export default async function VendorCallPage({ params }: PageProps<"/v/[token]">) {
   const { token } = await params;
-  const company = process.env.KOVRELL_COMPANY_NAME || "Acme Manufacturing";
-  const inspected = getRunController().inspectToken(token);
+  const controller = getRunController();
+  const company = controller.companyForToken(token);
+  const inspected = controller.inspectToken(token);
 
   if (!inspected.ok) {
     return (

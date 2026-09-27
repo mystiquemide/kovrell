@@ -11,7 +11,7 @@ const NOW = Date.parse("2026-09-24T12:00:00Z");
 
 // Agent stand-in: records wiring and lets the test end the call with any verdict.
 function fakeAgentFactory() {
-  const agents: { end: (v: VerdictResult, finished?: boolean) => void; started: boolean }[] = [];
+  const agents: { opts: AgentSessionOptions; end: (v: VerdictResult, finished?: boolean) => void; started: boolean }[] = [];
   const factory = (opts: AgentSessionOptions) => {
     let onEnd: (r: EndResult) => void = () => {};
     const verification = new VerificationSession({
@@ -20,6 +20,7 @@ function fakeAgentFactory() {
       challenges: opts.challenges,
     });
     const handle = {
+      opts,
       started: false,
       end: (verdict: VerdictResult, finished = true) => onEnd({ reason: "completed", verdict, sessionId: "sess_x", finished }),
     };
@@ -144,5 +145,21 @@ describe("RunController", () => {
     const q1 = store.listChecks(run.id).find((c) => c.key === "q1")!;
     const asked = buildChallenges(store.getRequestDetail("req_northwind")!, run.id)[0];
     expect(q1).toMatchObject({ status: "pending", expected: ((asked.expected as number) / 100).toFixed(2) });
+  });
+
+  it("calls on behalf of the vendor's payer when one is set, else the default company", () => {
+    const { store, controller, agents } = setup();
+    const v = store.createVendorLedger(
+      { name: "Orbit Supplies", payer_name: "Globex Foods", contact_name: "Ada Park", contact_phone: "+1 555 0100", contact_email: "", bank_name: "Chase",
+        account_last4: "1111", number_on_file_days: 400, payment_amount_cents: 5000,
+        invoices: [{ number: "OS-1", amount_cents: 1000, paid_on: "2026-08-01" }, { number: "OS-2", amount_cents: 2000, paid_on: "2026-09-01" }] },
+      NOW,
+    );
+    store.createRequest({ id: "req_o", vendor_id: v.id, channel: "email", new_bank_name: "Novo", new_account_last4: "2222", callback_contact: null, received_at: new Date(NOW).toISOString() });
+    const { run } = controller.createRun("req_o");
+    expect(controller.companyForToken(run.call_token)).toBe("Globex Foods");
+    controller.answer(run.call_token, fakeChannel());
+    expect(agents.at(-1)!.opts.company).toBe("Globex Foods");
+    expect(controller.callerCompany("req_northwind")).toBe("Acme");
   });
 });
