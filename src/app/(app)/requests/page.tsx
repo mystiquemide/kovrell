@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Arrow, ButtonLink } from "@/components/button";
 import { ResetLedger } from "@/components/reset-ledger";
 import { Stamp, requestStamp } from "@/components/stamp";
 import { CHANNEL_LABEL, dateTime, money } from "@/lib/format";
@@ -46,7 +47,10 @@ export default function RequestsPage() {
           This is a sample ledger. Brightline Print stays locked on purpose: its phone number changed six days ago. When every request is decided,
           reset the ledger for the next person.
         </p>
-        <div className="mt-5">
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <ButtonLink href="/setup">
+            Try it on your own vendor <Arrow />
+          </ButtonLink>
           <ResetLedger />
         </div>
       </section>

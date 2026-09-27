@@ -7,6 +7,7 @@ import { Mark, Wordmark } from "./mark";
 const LINKS = [
   { href: "/", label: "Home", match: [] as string[] },
   { href: "/requests", label: "Requests", match: ["/requests", "/calls"] },
+  { href: "/setup", label: "Set up", match: ["/setup"] },
   { href: "/vendors", label: "Vendors", match: ["/vendors"] },
   { href: "/evidence", label: "Evidence", match: ["/evidence"] },
 ];
@@ -24,14 +25,14 @@ export function Nav({ company }: { company: string }) {
             <Mark size={24} />
           </span>
         </Link>
-        <nav className="flex items-center gap-4 sm:gap-9">
+        <nav className="flex items-center gap-3 sm:gap-9">
           {LINKS.map((l) => {
             const active = l.match.some((m) => path.startsWith(m));
             return (
               <Link
                 key={l.href}
                 href={l.href}
-                className={`font-display text-[15px] font-medium transition-colors ${active ? "text-ink" : "text-subtle hover:text-ink"}`}
+                className={`whitespace-nowrap font-display text-[15px] font-medium transition-colors ${active ? "text-ink" : "text-subtle hover:text-ink"}`}
               >
                 {l.label}
               </Link>

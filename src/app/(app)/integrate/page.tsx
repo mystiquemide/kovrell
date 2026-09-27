@@ -7,6 +7,19 @@ const BASE = "https://kovrell.midelabs.xyz";
 
 const STEPS = [
   {
+    n: "00",
+    title: "Sync the vendor and its paid invoices",
+    body: "Your ERP sends the vendor master record: the contact of record, the bank on file, and recent paid invoices. The ledger questions are drawn from these invoices. You can also do this by hand on the Set up page.",
+    code: `curl -X POST ${BASE}/api/vendors \\
+  -H "content-type: application/json" \\
+  -d '{"name":"Pine Ridge Lumber","contact_name":"Alex Morgan",
+       "contact_phone":"+1 503 555 0164","bank_name":"U.S. Bank",
+       "account_last4":"3907","number_on_file_days":540,
+       "invoices":[{"number":"PRL-1182","amount_cents":1824000,"paid_on":"2026-07-25"},
+                   {"number":"PRL-1207","amount_cents":2291550,"paid_on":"2026-08-23"}],
+       "payment_amount_cents":3140000}'`,
+  },
+  {
     n: "01",
     title: "Send bank-detail changes to Kovrell",
     body: "When your AP inbox, vendor portal, or ERP sees a request to change a vendor's bank details, post it. Kovrell holds the vendor's next payment.",
@@ -44,7 +57,7 @@ export default function IntegratePage() {
       <p className="label text-subtle">Integrate</p>
       <h1 className="heading mt-3 text-[32px] sm:text-[40px]">Put Kovrell in front of your payment run.</h1>
       <p className="mt-4 text-[17px] leading-[1.55] text-muted">
-        Kovrell sits between a bank-detail change and the payment it affects. Four HTTP calls connect it to whatever sees those changes today. These
+        Kovrell sits between a bank-detail change and the payment it affects. Five HTTP calls connect it to whatever sees those changes today. These
         examples run against this sandbox and its sample ledger.
       </p>
       <p className="mt-4 rounded-[10px] border border-line bg-panel px-4 py-3 text-[14px] text-ink-2">

@@ -14,7 +14,7 @@ export default async function RequestPage({ params }: PageProps<"/requests/[id]"
   const { id } = await params;
   const view = requestView(getStore(), id);
   if (!view) notFound();
-  const { request, vendor, payment, preflight, challenges, runs, openRunId, dueInDays: due } = view;
+  const { request, vendor, payment, preflight, questionPool, runs, openRunId, dueInDays: due } = view;
   const locked = request.status === "held" && preflight.locked;
   const decided = request.status !== "held";
   const clear = preflight.checks.filter((c) => c.status !== "fail").length;
@@ -99,11 +99,11 @@ export default async function RequestPage({ params }: PageProps<"/requests/[id]"
         </div>
       </section>
 
-      {challenges.length > 0 && (
+      {questionPool.length > 0 && (
         <section className="mt-10">
           <p className="label text-subtle">Ledger questions</p>
           <p className="mt-3 text-muted">
-            {challenges.map((c) => c.label).join("  /  ")}
+            Two invoice totals and one payment date, drawn at random for each call from {questionPool.join(", ")}.
           </p>
           <p className="mt-1 text-[14px] text-subtle">Answers are never spoken on the call. One attempt each.</p>
         </section>

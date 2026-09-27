@@ -46,6 +46,8 @@ export function seedSampleLedger(db: Db, now = Date.now()): void {
     });
     change.run("v_northwind", "contact_phone", null, "+1 512 555 0142", daysAgo(now, 562), "vendor onboarding");
     change.run("v_northwind", "account_last4", null, "2209", daysAgo(now, 562), "vendor onboarding");
+    invoice.run("inv_4388", "v_northwind", "INV-4388", 7_418_000, dateOnly(now, 91), dateOnly(now, 76));
+    invoice.run("inv_4426", "v_northwind", "INV-4426", 11_056_250, dateOnly(now, 69), dateOnly(now, 54));
     invoice.run("inv_4471", "v_northwind", "INV-4471", 9_632_500, dateOnly(now, 48), dateOnly(now, 33));
     invoice.run("inv_4502", "v_northwind", "INV-4502", 12_740_000, dateOnly(now, 27), dateOnly(now, 12));
     invoice.run("inv_4533", "v_northwind", "INV-4533", 18_420_000, dateOnly(now, 9), null);
@@ -75,6 +77,8 @@ export function seedSampleLedger(db: Db, now = Date.now()): void {
     });
     change.run("v_halden", "contact_phone", null, "+1 737 555 0118", daysAgo(now, 830), "vendor onboarding");
     change.run("v_halden", "account_last4", null, "5530", daysAgo(now, 830), "vendor onboarding");
+    invoice.run("inv_h2154", "v_halden", "HF-2154", 2_976_480, dateOnly(now, 83), dateOnly(now, 72));
+    invoice.run("inv_h2187", "v_halden", "HF-2187", 3_540_900, dateOnly(now, 62), dateOnly(now, 51));
     invoice.run("inv_h2210", "v_halden", "HF-2210", 3_815_060, dateOnly(now, 41), dateOnly(now, 30));
     invoice.run("inv_h2238", "v_halden", "HF-2238", 4_102_275, dateOnly(now, 20), dateOnly(now, 9));
     invoice.run("inv_h2261", "v_halden", "HF-2261", 4_291_540, dateOnly(now, 6), null);

@@ -6,12 +6,12 @@ import { publicRun, requestView } from "./views";
 const NOW = Date.parse("2026-09-24T12:00:00Z");
 
 describe("views", () => {
-  it("request view carries provenance and challenge labels but never ledger answers", () => {
+  it("request view carries provenance and the question pool but never ledger answers", () => {
     const store = createStore(openDb(":memory:"));
     store.seedIfEmpty(NOW);
     const view = requestView(store, "req_northwind", NOW)!;
     expect(view.preflight.locked).toBe(false);
-    expect(view.challenges.map((c) => c.label)).toEqual(["INV-4471 total", "INV-4502 total", "INV-4502 payment date"]);
+    expect(view.questionPool).toEqual(["INV-4502", "INV-4471", "INV-4426", "INV-4388"]);
     const json = JSON.stringify(view);
     expect(json).not.toContain("9632500");
     expect(json).not.toContain("12740000");

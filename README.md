@@ -22,7 +22,7 @@ Kovrell holds the payment and makes the callback itself. The agent calls only th
 
 1. A bank-change request arrives and the payment is held.
 2. A preflight checks the number of record. If it changed in the last 30 days, the call is locked and a person verifies in person.
-3. The agent calls the vendor: confirm identity, confirm they made the request, answer three ledger questions (two invoice totals and a payment date), and confirm a readback of the new account.
+3. The agent calls the vendor: confirm identity, confirm they made the request, answer three ledger questions, and confirm a readback of the new account. The questions (two invoice totals and one payment date) are drawn at random from the vendor's recent paid invoices on every call, so there's no fixed script to prepare for.
 4. The server scores the answers, applies the verdict, and seals the evidence.
 
 | Verdict | Rule | Payment |
@@ -108,6 +108,8 @@ The live app runs on a sample ledger with three vendors. You play the vendor wit
 4. Open [/evidence](https://kovrell.midelabs.xyz/evidence) for the sealed record: checks, recording, timeline, and the sha256 seal with a command to re-verify it.
 5. Press **Reset the sample ledger** on /requests when you're done.
 
+**Try it on your own vendor:** open [/setup](https://kovrell.midelabs.xyz/setup), enter a made-up vendor, its contact, a few paid invoices, and the bank change. Kovrell holds the payment, and you take the call as that vendor with questions drawn from the invoices you entered. Pick "Changed 6 days ago" for the phone to see the call refused. This is the same data an ERP sends through `POST /api/vendors` and `POST /api/requests`.
+
 ![Held payments inbox with the try-it guide](docs/screenshots/requests.jpg)
 
 No microphone? [run_acfbdd63](https://kovrell.midelabs.xyz/evidence/run_acfbdd63) is a recorded PASS call (about 100 s, 3 of 3 checks, 1.96 s median response time). The vendor side was spoken by a scripted test caller, and the page says so.
@@ -128,7 +130,7 @@ Kovrell fits into any accounts payable flow as a hold step: a request comes in t
 
 Current scope:
 
-- Sample ledger only. ERP and AP system connectors come next, using `POST /api/requests` as the entry point.
+- Sample ledger plus vendors you add on /setup. ERP and AP connectors come next, using `POST /api/vendors` and `POST /api/requests` as the entry points.
 - Calls run in the browser. A phone channel (Twilio `audio/pcmu`, which AssemblyAI accepts natively) is designed behind the `CallChannel` interface.
 - Ledger questions stop outsiders, not insiders with access to the vendor's invoices. Voice cloning isn't detected.
 - Single instance with SQLite, so people testing at once share the same ledger. Starting calls is limited to 3 a minute per visitor.

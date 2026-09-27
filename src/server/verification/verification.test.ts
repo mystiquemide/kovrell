@@ -105,6 +105,28 @@ describe("buildChallenges", () => {
     expect(challenges[1].expected).toBe(12_740_000);
   });
 
+  it("draws a stable random set per run from the paid invoices", () => {
+    const d = detail("req_northwind");
+    const paid = new Map(d.invoices.filter((i) => i.paid_on).map((i) => [i.number, i]));
+    const sets = new Set<string>();
+    for (let i = 0; i < 40; i++) {
+      const runId = `run_${i}`;
+      const a = buildChallenges(d, runId);
+      expect(buildChallenges(d, runId)).toEqual(a);
+      const [q1, q2, q3] = a;
+      expect(q1.label).not.toBe(q2.label);
+      for (const c of a) {
+        const inv = paid.get(c.label.split(" ")[0])!;
+        expect(inv).toBeDefined();
+        expect(c.expected).toBe(c.kind === "amount" ? inv.amount_cents : inv.paid_on);
+        expect(c.prompt).not.toMatch(/\$|\d{2},\d{3}/);
+      }
+      expect(q3.kind).toBe("date");
+      sets.add(a.map((c) => c.label).join("|"));
+    }
+    expect(sets.size).toBeGreaterThan(5);
+  });
+
   it("refuses to build with fewer than two paid invoices", () => {
     expect(() => buildChallenges(detail("req_brightline"))).toThrow("at least two paid invoices");
   });

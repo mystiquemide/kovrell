@@ -4,6 +4,7 @@ import type { CallChannel } from "./channels";
 import { openDb } from "./db";
 import { CALL_LINK_TTL_MS, RunController } from "./runs";
 import { createStore } from "./store";
+import { buildChallenges } from "./verification/challenges";
 import { VerificationSession, type VerdictResult } from "./verification/session";
 
 const NOW = Date.parse("2026-09-24T12:00:00Z");
@@ -141,6 +142,7 @@ describe("RunController", () => {
     const { run } = controller.createRun("req_northwind");
     controller.answer(run.call_token, fakeChannel());
     const q1 = store.listChecks(run.id).find((c) => c.key === "q1")!;
-    expect(q1).toMatchObject({ status: "pending", expected: "96325.00" });
+    const asked = buildChallenges(store.getRequestDetail("req_northwind")!, run.id)[0];
+    expect(q1).toMatchObject({ status: "pending", expected: ((asked.expected as number) / 100).toFixed(2) });
   });
 });

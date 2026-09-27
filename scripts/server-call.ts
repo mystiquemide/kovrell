@@ -8,17 +8,17 @@ import WebSocket from "ws";
 import { openDb } from "../src/server/db";
 import { RunController } from "../src/server/runs";
 import { createStore } from "../src/server/store";
-import { CHUNK_BYTES, CHUNK_MS, scenarios, synth } from "./lib/vendor-voice";
+import { CHUNK_BYTES, CHUNK_MS, genuineVendor, scenarios, synth } from "./lib/vendor-voice";
 
 async function main() {
   const name = process.argv[2] ?? "northwind";
   const base = process.argv[3] ?? "http://localhost:3000";
-  const scenario = scenarios[name];
-  if (!scenario) throw new Error(`Unknown scenario ${name}`);
-
   // Same SQLite file the server uses. createRun only touches the database.
   const store = createStore(openDb(process.env.DATABASE_PATH || "./data/kovrell.db"));
   store.seedIfEmpty();
+  // A request id (req_...) plays a genuine vendor answering from that request's ledger.
+  const scenario = name.startsWith("req_") ? genuineVendor(name, store) : scenarios[name];
+  if (!scenario) throw new Error(`Unknown scenario ${name}`);
   const controller = new RunController({ store, apiKey: "unused", company: "Acme Manufacturing", publicBaseUrl: base });
   const { run, callUrl } = controller.createRun(scenario.requestId);
   console.log(`run ${run.id}  call link ${callUrl.replace(/\/v\/.{6}.*/, "/v/<token>")}`);

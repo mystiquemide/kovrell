@@ -52,19 +52,40 @@ function spokenDate(iso: string): string {
   return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-US", { month: "long", day: "numeric", timeZone: "UTC" });
 }
 
+const ONES = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+const TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+
+function words(n: number): string {
+  if (n < 20) return ONES[n];
+  if (n < 100) return `${TENS[Math.floor(n / 10)]}${n % 10 ? ` ${ONES[n % 10]}` : ""}`;
+  if (n < 1000) return `${ONES[Math.floor(n / 100)]} hundred${n % 100 ? ` ${words(n % 100)}` : ""}`;
+  if (n < 1_000_000) return `${words(Math.floor(n / 1000))} thousand${n % 1000 ? ` ${words(n % 1000)}` : ""}`;
+  return `${words(Math.floor(n / 1_000_000))} million${n % 1_000_000 ? ` ${words(n % 1_000_000)}` : ""}`;
+}
+
+function spokenAmount(cents: number): string {
+  const dollars = Math.floor(cents / 100);
+  const rest = cents % 100;
+  return `${words(dollars)} dollars${rest ? ` and ${words(rest)} cents` : ""}`;
+}
+
+/** Answers whichever invoice the agent asks about, straight from the ledger. */
+function ledgerAnswer(requestId: string, t: string, source = store): string | null {
+  const d = source.getRequestDetail(requestId)!;
+  const inv = d.invoices.find((i) => t.includes(i.number) || t.includes(i.number.replace(/\D/g, "").split("").join(" ")));
+  if (!inv) return null;
+  if (/date|when/i.test(t)) return `We received it on ${spokenDate(inv.paid_on!)}.`;
+  return `That one was ${spokenAmount(inv.amount_cents)}.`;
+}
+
 export const scenarios: Record<string, { requestId: string; respond: Responder }> = {
   northwind: {
     requestId: "req_northwind",
     respond: (t) => {
-      const d = store.getRequestDetail("req_northwind")!;
-      const paid = d.invoices.find((i) => i.number === "INV-4502")!;
       if (/is this|speaking with/i.test(t)) return "Yes, this is Jide Okafor at Northwind Steel.";
       if (/ask for that change|request this change/i.test(t)) return "Yes, we did. We moved our operating account to Chase last month.";
-      if (/4471/.test(t)) return "That one was ninety six thousand three hundred twenty five dollars.";
-      if (/4502/.test(t) && /date|when/i.test(t)) return `We received it on ${spokenDate(paid.paid_on!)}.`;
-      if (/4502/.test(t)) return "One hundred twenty seven thousand four hundred dollars.";
       if (/right\?|correct\?/i.test(t)) return "Yes, that's correct.";
-      return null;
+      return ledgerAnswer("req_northwind", t);
     },
   },
   halden: {
@@ -77,3 +98,17 @@ export const scenarios: Record<string, { requestId: string; respond: Responder }
   },
 };
 
+/** A genuine vendor for any request, answering from the given store. Used for vendors added on the Set up page. */
+export function genuineVendor(requestId: string, source: ReturnType<typeof createStore>): { requestId: string; respond: Responder } {
+  const d = source.getRequestDetail(requestId);
+  if (!d) throw new Error(`Unknown request ${requestId}`);
+  return {
+    requestId,
+    respond: (t) => {
+      if (/is this|speaking with/i.test(t)) return `Yes, this is ${d.vendor.contact_name} at ${d.vendor.name}.`;
+      if (/ask for that change|request this change/i.test(t)) return `Yes, we did. We moved our account to ${d.request.new_bank_name}.`;
+      if (/right\?|correct\?/i.test(t)) return "Yes, that's correct.";
+      return ledgerAnswer(requestId, t, source);
+    },
+  };
+}

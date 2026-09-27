@@ -1,5 +1,5 @@
 import type { Run, StoredCheck, Store } from "./store";
-import { buildChallenges } from "./verification/challenges";
+import { buildChallenges, QUESTION_POOL_SIZE } from "./verification/challenges";
 import { preflight, PROVENANCE_WINDOW_DAYS } from "./verification/provenance";
 
 /** Checks as the AP team sees them. Expected ledger values stay out; they belong to the evidence pack. */
@@ -15,14 +15,14 @@ export function publicRun(run: Run) {
 }
 
 /** Human labels for every check key on a run, including the per-request ledger questions. */
-export function checkLabels(detail: NonNullable<ReturnType<Store["getRequestDetail"]>>): Record<string, string> {
+export function checkLabels(detail: NonNullable<ReturnType<Store["getRequestDetail"]>>, runId?: string): Record<string, string> {
   const labels: Record<string, string> = {
     identity: "Identity",
     requested: "Vendor confirms the request",
     readback: "Readback of new account",
   };
   try {
-    for (const c of buildChallenges(detail)) labels[c.id] = c.label;
+    for (const c of buildChallenges(detail, runId)) labels[c.id] = c.label;
   } catch {
     // Vendors without enough paid invoices cannot be called, so there are no question labels.
   }
@@ -65,7 +65,7 @@ export function evidenceView(store: Store, id: string) {
   return {
     run: publicRun(run),
     vendor: { id: detail.vendor.id, name: detail.vendor.name, contact_name: detail.vendor.contact_name, contact_phone: detail.vendor.contact_phone },
-    labels: checkLabels(detail),
+    labels: checkLabels(detail, run.id),
     request: detail.request,
     payment: detail.payment,
     // Expected ledger values are shown here only, for auditors.
@@ -90,19 +90,19 @@ export function requestView(store: Store, id: string, now = Date.now()) {
   if (!detail) return null;
   const { request, vendor, payment, changes } = detail;
   const run = store.latestRunForRequest(id);
-  let challenges: { id: string; label: string; prompt: string }[] = [];
-  try {
-    challenges = buildChallenges(detail).map(({ id, label, prompt }) => ({ id, label, prompt }));
-  } catch {
-    challenges = [];
-  }
+  // Questions are drawn per run, so the request page shows the pool they come from.
+  const questionPool = detail.invoices
+    .filter((i) => i.paid_on)
+    .sort((a, b) => b.issued_on.localeCompare(a.issued_on))
+    .slice(0, QUESTION_POOL_SIZE)
+    .map((i) => i.number);
   return {
     request,
     vendor,
     payment,
     changes,
     preflight: preflight(detail, now),
-    challenges,
+    questionPool: questionPool.length >= 2 ? questionPool : [],
     latestRun: run ? publicRun(run) : null,
     runs: store.listRunsForRequest(id).map(publicRun),
     /** A run that can still be answered or is on the line right now. */
@@ -120,13 +120,13 @@ export function runView(store: Store, id: string) {
   const detail = store.getRequestDetail(run.request_id)!;
   return {
     run: publicRun(run),
-    labels: checkLabels(detail),
+    labels: checkLabels(detail, run.id),
     request: detail.request,
     vendor: { id: detail.vendor.id, name: detail.vendor.name, contact_name: detail.vendor.contact_name, contact_phone: detail.vendor.contact_phone },
     payment: detail.payment,
     checks: publicChecks(store.listChecks(id)),
     events: store.listEvents(id),
-    testerSheet: run.status === "ended" ? null : testerSheet(detail),
+    testerSheet: run.status === "ended" ? null : testerSheet(detail, run.id),
   };
 }
 
@@ -134,10 +134,10 @@ export function runView(store: Store, id: string) {
  * What the real vendor would know, from the sample ledger. Shown to the person testing the
  * call on the AP screen so they can play the vendor. Never sent to the vendor call page.
  */
-export function testerSheet(detail: NonNullable<ReturnType<Store["getRequestDetail"]>>) {
+export function testerSheet(detail: NonNullable<ReturnType<Store["getRequestDetail"]>>, runId: string) {
   let answers: { label: string; prompt: string; answer: string }[] = [];
   try {
-    answers = buildChallenges(detail).map((c) => ({
+    answers = buildChallenges(detail, runId).map((c) => ({
       label: c.label,
       prompt: c.prompt,
       answer:

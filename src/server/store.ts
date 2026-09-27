@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { openDb, type Db } from "./db";
 import { seedSampleLedger } from "./seed";
 
@@ -124,6 +125,16 @@ export interface RunListRow extends Run {
 
 export function createStore(db: Db) {
   const isEmpty = () => (db.prepare("SELECT COUNT(*) AS n FROM vendors").get() as { n: number }).n === 0;
+
+  /** Deletes a vendor and everything recorded against it. */
+  const removeVendor = (id: string) => {
+    const runs = `SELECT r.id FROM runs r JOIN requests q ON q.id = r.request_id WHERE q.vendor_id = ?`;
+    for (const t of ["evidence", "checks", "run_events"]) db.prepare(`DELETE FROM ${t} WHERE run_id IN (${runs})`).run(id);
+    db.prepare(`DELETE FROM runs WHERE request_id IN (SELECT id FROM requests WHERE vendor_id = ?)`).run(id);
+    for (const t of ["requests", "payments", "invoices", "vendor_changes", "vendors"]) {
+      db.prepare(`DELETE FROM ${t} WHERE ${t === "vendors" ? "id" : "vendor_id"} = ?`).run(id);
+    }
+  };
 
   return {
     db,
@@ -303,6 +314,65 @@ export function createStore(db: Db) {
         status: r.status,
         updated_at: r.updated_at,
       };
+    },
+
+    /**
+     * Adds a vendor with its contact of record, paid invoices, and the next payment, held.
+     * This is what an ERP sync would provide. Only the newest `keepCustom` added vendors are kept.
+     */
+    createVendorLedger(
+      input: {
+        name: string;
+        contact_name: string;
+        contact_phone: string;
+        contact_email: string;
+        bank_name: string;
+        account_last4: string;
+        number_on_file_days: number;
+        invoices: { number: string; amount_cents: number; paid_on: string }[];
+        payment_amount_cents: number;
+      },
+      now = Date.now(),
+      keepCustom = 12,
+    ): Vendor {
+      const id = `v_${randomUUID().slice(0, 8)}`;
+      const day = 86_400_000;
+      const onFile = new Date(now - input.number_on_file_days * day).toISOString();
+      db.transaction(() => {
+        db.prepare(
+          `INSERT INTO vendors (id, name, contact_name, contact_phone, contact_email, bank_name, account_last4, routing_last4)
+           VALUES (?, ?, ?, ?, ?, ?, ?, '0000')`,
+        ).run(id, input.name, input.contact_name, input.contact_phone, input.contact_email, input.bank_name, input.account_last4);
+        const change = db.prepare(
+          `INSERT INTO vendor_changes (vendor_id, field, old_value, new_value, changed_at, source) VALUES (?, ?, ?, ?, ?, ?)`,
+        );
+        // A number on file for under 30 days is recorded as a change from an older number, which trips the provenance lock.
+        const recent = input.number_on_file_days < 30;
+        change.run(id, "contact_phone", recent ? "previous number" : null, input.contact_phone, onFile, recent ? "vendor request" : "vendor onboarding");
+        change.run(id, "account_last4", null, input.account_last4, new Date(now - Math.max(input.number_on_file_days, 400) * day).toISOString(), "vendor onboarding");
+        const invoice = db.prepare(`INSERT INTO invoices (id, vendor_id, number, amount_cents, issued_on, paid_on) VALUES (?, ?, ?, ?, ?, ?)`);
+        for (const inv of input.invoices) {
+          const issued = new Date(Date.parse(`${inv.paid_on}T00:00:00Z`) - 15 * day).toISOString().slice(0, 10);
+          invoice.run(`inv_${randomUUID().slice(0, 8)}`, id, inv.number, inv.amount_cents, issued, inv.paid_on);
+        }
+        db.prepare(`INSERT INTO payments (id, vendor_id, amount_cents, due_on, status, destination_last4) VALUES (?, ?, ?, ?, 'held', ?)`).run(
+          `pay_${randomUUID().slice(0, 8)}`,
+          id,
+          input.payment_amount_cents,
+          new Date(now + 3 * day).toISOString().slice(0, 10),
+          input.account_last4,
+        );
+
+        const custom = db
+          .prepare(
+            `SELECT v.id FROM vendors v WHERE v.id NOT IN ('v_northwind', 'v_halden', 'v_brightline')
+             AND NOT EXISTS (SELECT 1 FROM runs r JOIN requests q ON q.id = r.request_id WHERE q.vendor_id = v.id AND r.status = 'live')
+             ORDER BY v.rowid DESC`,
+          )
+          .all() as { id: string }[];
+        for (const { id: old } of custom.slice(keepCustom)) removeVendor(old);
+      })();
+      return db.prepare("SELECT * FROM vendors WHERE id = ?").get(id) as Vendor;
     },
 
     /** Adds a bank-change request against the vendor's next held or scheduled payment. */

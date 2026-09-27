@@ -1,3 +1,4 @@
+import { preflight } from "./verification/provenance";
 import { describe, expect, it } from "vitest";
 import { openDb } from "./db";
 import { createStore } from "./store";
@@ -37,7 +38,7 @@ describe("request detail", () => {
     const detail = freshStore().getRequestDetail("req_northwind");
     expect(detail?.vendor.contact_name).toBe("Jide Okafor");
     expect(detail?.payment.status).toBe("held");
-    expect(detail?.invoices.map((i) => i.number)).toEqual(["INV-4471", "INV-4502", "INV-4533"]);
+    expect(detail?.invoices.map((i) => i.number)).toEqual(["INV-4388", "INV-4426", "INV-4471", "INV-4502", "INV-4533"]);
     expect(detail?.request.callback_contact).toBe("+1 512 555 0199");
     expect(detail?.request.callback_contact).not.toBe(detail?.vendor.contact_phone);
   });
@@ -91,5 +92,49 @@ describe("outcomes", () => {
     store.setOutcome("req_halden", "blocked", "blocked");
     store.reset(NOW);
     expect(store.listInbox().every((r) => r.status === "held")).toBe(true);
+  });
+
+  it("adds a vendor ledger that a request and verification can run against", () => {
+    const store = freshStore();
+    const v = store.createVendorLedger(
+      {
+        name: "Orbit Supplies",
+        contact_name: "Ada Park",
+        contact_phone: "+1 555 0100",
+        contact_email: "",
+        bank_name: "Chase",
+        account_last4: "1111",
+        number_on_file_days: 400,
+        invoices: [
+          { number: "OS-1", amount_cents: 120_000, paid_on: "2026-08-01" },
+          { number: "OS-2", amount_cents: 250_050, paid_on: "2026-09-01" },
+        ],
+        payment_amount_cents: 500_000,
+      },
+      NOW,
+    );
+    const req = store.createRequest({ id: "req_x", vendor_id: v.id, channel: "email", new_bank_name: "Novo", new_account_last4: "2222", callback_contact: null, received_at: new Date(NOW).toISOString() });
+    const d = store.getRequestDetail(req.id)!;
+    expect(d.invoices.map((i) => i.number)).toEqual(["OS-1", "OS-2"]);
+    expect(d.payment).toMatchObject({ status: "held", amount_cents: 500_000, destination_last4: "1111" });
+    expect(preflight(d, NOW).locked).toBe(false);
+  });
+
+  it("locks a vendor whose number of record changed recently, and prunes old added vendors", () => {
+    const store = freshStore();
+    const add = (days: number) =>
+      store.createVendorLedger(
+        { name: "V", contact_name: "C", contact_phone: "+1 555 0101", contact_email: "", bank_name: "B", account_last4: "3333", number_on_file_days: days,
+          invoices: [{ number: "A", amount_cents: 100, paid_on: "2026-09-01" }, { number: "B", amount_cents: 200, paid_on: "2026-09-10" }], payment_amount_cents: 300 },
+        NOW,
+        2,
+      );
+    const locked = add(5);
+    store.createRequest({ id: "req_l", vendor_id: locked.id, channel: "email", new_bank_name: "N", new_account_last4: "4444", callback_contact: null, received_at: new Date(NOW).toISOString() });
+    expect(preflight(store.getRequestDetail("req_l")!, NOW).locked).toBe(true);
+    add(400);
+    add(400);
+    expect(store.getVendor(locked.id)).toBeNull();
+    expect(store.getVendor("v_northwind")).not.toBeNull();
   });
 });

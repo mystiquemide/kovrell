@@ -111,7 +111,7 @@ export class RunController {
 
     const run = inspected.run;
     const detail = store.getRequestDetail(run.request_id)!;
-    const challenges = buildChallenges(detail);
+    const challenges = buildChallenges(detail, run.id);
     const agent = this.agentFactory({
       apiKey: this.opts.apiKey,
       company: this.opts.company,
