@@ -96,7 +96,7 @@ Every behavior below has a test:
 | "Hello, can you hear me?" taken as identity | Needs explicit confirmation from the caller | [agent-session.test.ts#L93](src/server/agent/agent-session.test.ts#L93) |
 | Call drops after good answers | INCONCLUSIVE, payment held | [agent-session.test.ts#L113](src/server/agent/agent-session.test.ts#L113) |
 | AssemblyAI session fails | Fails closed to INCONCLUSIVE | [agent-session.test.ts#L175](src/server/agent/agent-session.test.ts#L175) |
-| Answers leak into the prompt or the vendor page | Config, views, and vendor socket carry no answers | [agent-session.test.ts#L52](src/server/agent/agent-session.test.ts#L52), [views.test.ts#L9](src/server/views.test.ts#L9) |
+| Answers leak into the prompt, the API, or the vendor page | Config, API views, and vendor socket carry no answers | [agent-session.test.ts#L52](src/server/agent/agent-session.test.ts#L52), [views.test.ts#L9](src/server/views.test.ts#L9) |
 
 ## Try it
 
@@ -104,7 +104,7 @@ The live app runs on a sample ledger with three vendors. You play the vendor wit
 
 1. Open [/requests](https://kovrell.midelabs.xyz/requests). Brightline Print is locked because its number changed six days ago.
 2. Open Northwind Steel ($184,200.00), press **Call vendor of record**, then **Open vendor line**.
-3. The call screen shows a tester sheet with what the real vendor knows. Answer from it to get PASS, or deny the request or guess the totals to get FAIL.
+3. The call screen shows a tester sheet with what the real vendor knows. Answer from it to get PASS, or deny the request or guess the totals to get FAIL. The sheet exists only so you can play the vendor in this demo. It never reaches the vendor page or the API.
 4. Open [/evidence](https://kovrell.midelabs.xyz/evidence) for the sealed record: checks, recording, timeline, and the sha256 seal with a command to re-verify it.
 5. Press **Reset the sample ledger** on /requests when you're done.
 
@@ -131,7 +131,7 @@ Current scope:
 - Sample ledger only. ERP and AP system connectors come next, using `POST /api/requests` as the entry point.
 - Calls run in the browser. A phone channel (Twilio `audio/pcmu`, which AssemblyAI accepts natively) is designed behind the `CallChannel` interface.
 - Ledger questions stop outsiders, not insiders with access to the vendor's invoices. Voice cloning isn't detected.
-- Single instance with SQLite, so people testing at once share the same ledger.
+- Single instance with SQLite, so people testing at once share the same ledger. Starting calls is limited to 3 a minute per visitor.
 - Hackathon code, not audited for real payments.
 
 ## Run locally

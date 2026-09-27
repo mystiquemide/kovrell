@@ -8,5 +8,6 @@ export async function GET(_req: NextRequest, ctx: RouteContext<"/api/runs/[id]">
   const { id } = await ctx.params;
   const view = runView(getStore(), id);
   if (!view) return Response.json({ error: "Run not found." }, { status: 404 });
-  return Response.json(view);
+  // The tester sheet holds the answers. It renders only on the demo call screen, never over the API.
+  return Response.json({ ...view, testerSheet: undefined });
 }
