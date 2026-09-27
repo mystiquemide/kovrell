@@ -72,18 +72,18 @@ Fail closed: socket error, provider error, timeout (6 min max), vendor hangup be
 
 Sent inline in `session.update` per run, built from the request:
 
-- `greeting`: "Hello, this is an automated verification call from Acme Manufacturing accounts payable. This call is recorded. Am I speaking with {contact_name} at {vendor_name}?"
+- `greeting`: "Hi, this is the automated payments assistant from {company} accounts payable. This call is recorded. Is this {contact_name} at {vendor_name}?"
 - `system_prompt`: role, strict script order, the challenge questions as text (never the answers), rules: never state amounts or dates from records, never say whether an answer was right, one attempt per question, stay neutral, end politely.
 - `input.keyterms`: vendor name, contact name, invoice numbers, bank names.
 - `input.transcription_mode`: `max_accuracy` (numbers matter more than 100 ms).
-- `output.voice`: set once, calm voice.
+- `output.voice`: `jane`.
 - `tools`: below, all `type: "function"`, run on the Kovrell server.
 
 ## 6. Tools
 
 | Tool | Parameters | Server behavior | Returned to agent |
 |---|---|---|---|
-| `confirm_identity` | `name` string, `company` string | Fuzzy match to contact of record | `{recorded:true}` plus next step |
+| `confirm_identity` | `name` string, `company` string, `confirmed_by_caller` boolean | Fuzzy match to contact of record, only counted when the caller explicitly confirmed | `{recorded:true}` plus next step |
 | `record_request_status` | `vendor_says_requested` boolean, `note` string | If false, mark DENIAL | `{recorded:true}` |
 | `check_challenge` | `question_id` enum, `answer` string | Parse amount or date, compare to ledger (amount within $1, exact date). First answer per question only. | `{recorded:true}` never correctness |
 | `confirm_readback` | `confirmed` boolean | Agent read back "bank name, account ending ####" of the requested details. Store the vendor's yes or no. | `{recorded:true}` |
@@ -161,7 +161,7 @@ Node 22, Next.js 16, React 19, TypeScript, Tailwind v4, `ws`, `better-sqlite3`, 
 
 ## 14. Deployment
 
-Needs a long-lived Node process with WebSockets and HTTPS (mic access requires a secure origin). Vercel serverless does not fit. Target: Railway (or Render) running `node dist/server.js`, one instance, SQLite on a volume. Deploy only after explicit approval.
+Needs a long-lived Node process with WebSockets and HTTPS (mic access requires a secure origin), so serverless platforms do not fit. The live app runs as one instance (`npm start`) with SQLite on local disk, behind a Cloudflare tunnel at https://kovrell.midelabs.xyz.
 
 ## 15. Metrics
 
