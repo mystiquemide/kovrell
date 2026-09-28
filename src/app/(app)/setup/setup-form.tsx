@@ -90,10 +90,18 @@ export function SetupForm({ company }: { company: string }) {
           <p className="mt-2 text-[15px] leading-[1.55] text-muted">What your vendor master already holds. Kovrell only ever calls this contact.</p>
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <Field label="Your company" hint="Who the agent calls on behalf of. It also shows in the top right. Leave blank to call as the sandbox's sample company.">
+              <Field
+                label="Your company"
+                hint={
+                  company
+                    ? "Remembered from your last vendor. Clicking the field selects it, so typing replaces it."
+                    : "Who the agent calls on behalf of. It also shows in the top right. Leave blank to call as the sandbox's sample company."
+                }
+              >
                 <input
                   className={FIELD}
                   placeholder="Type your company name"
+                  onFocus={(e) => e.currentTarget.select()}
                   value={vendor.payer_name}
                   onChange={(e) => setVendor({ ...vendor, payer_name: e.target.value })}
                 />
