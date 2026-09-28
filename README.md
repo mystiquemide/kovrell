@@ -2,9 +2,9 @@
 
 A voice agent that calls the vendor back before a changed bank account gets paid. Built on the [AssemblyAI Voice Agent API](https://www.assemblyai.com/docs/voice-agents/voice-agent-api).
 
-**Live app:** https://kovrell.midelabs.xyz · **Recorded call:** [/evidence/run_acfbdd63](https://kovrell.midelabs.xyz/evidence/run_acfbdd63) · **API:** [/integrate](https://kovrell.midelabs.xyz/integrate)
+**Live app:** https://kovrell.midelabs.xyz · **Demo video:** [2:43 on YouTube](https://youtu.be/nUYKtbkv1CY) · **Recorded call:** [/evidence/run_acfbdd63](https://kovrell.midelabs.xyz/evidence/run_acfbdd63) · **API:** [/integrate](https://kovrell.midelabs.xyz/integrate)
 
-![Kovrell landing page with the live checks from a recorded verification call](docs/screenshots/landing.jpg)
+[![Watch the Kovrell demo (2:43)](docs/media/demo-thumbnail.jpg)](https://youtu.be/nUYKtbkv1CY)
 
 ## The problem
 
