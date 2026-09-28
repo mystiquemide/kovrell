@@ -196,7 +196,10 @@ export function VendorCall({ token, company, callerLine }: { token: string; comp
         </div>
       </div>
       <p className="border-t border-line pt-5 text-[13px] text-subtle">
-        This call is automated and recorded. {company} will never ask for passwords or card numbers.
+        This call is automated and recorded. {company} will never ask for passwords or card numbers.{" "}
+        <a href="/privacy" target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-ink">
+          How recordings are handled
+        </a>
       </p>
     </main>
   );

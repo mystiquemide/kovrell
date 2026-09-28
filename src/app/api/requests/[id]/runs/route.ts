@@ -6,7 +6,7 @@ import { publicRun } from "@/server/views";
 
 export const dynamic = "force-dynamic";
 
-const STATUS: Record<RunError["code"], number> = { not_found: 404, locked: 423, not_held: 409, busy: 409 };
+const STATUS: Record<RunError["code"], number> = { not_found: 404, locked: 423, not_held: 409, busy: 409, not_eligible: 409, mismatch: 400 };
 
 /** Each call link can open a paid voice session, so public callers get 3 runs a minute. */
 const RUNS_PER_MINUTE = 3;

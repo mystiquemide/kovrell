@@ -8,6 +8,7 @@ import { evidenceView } from "@/server/views";
 import { SHOWCASE_RUN_ID, showcaseEvidenceView } from "@/showcase";
 import { Seal } from "@/components/seal";
 import { Recording } from "./recording";
+import { MANUAL_METHOD_LABEL, type ManualMethod } from "@/server/runs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Evidence pack" };
@@ -28,6 +29,9 @@ export default async function EvidencePackPage({ params }: PageProps<"/evidence/
   if (!view) notFound();
   const { run, vendor, request, checks, events, evidence, labels, record } = view;
   const provenance = ((record as { provenance_at_call?: Provenance } | null)?.provenance_at_call ?? null) as Provenance | null;
+  const manual = events.find((e) => e.kind === "manual")?.payload as
+    | { verified_by: string; method: ManualMethod; confirmed_last4: string; note: string | null }
+    | undefined;
   const lines = events.filter((e) => ["agent", "vendor", "tool"].includes(e.kind));
 
   return (
@@ -44,7 +48,7 @@ export default async function EvidencePackPage({ params }: PageProps<"/evidence/
           <h1 className="heading mt-2 text-[32px] sm:text-[40px]">{vendor.name}</h1>
           <p className="mt-2 text-muted">
             {dateTime(run.started_at)}
-            {duration(run.started_at, run.ended_at) && <> / {duration(run.started_at, run.ended_at)}</>} / Contact of record{" "}
+            {run.channel !== "manual" && duration(run.started_at, run.ended_at) && <> / {duration(run.started_at, run.ended_at)}</>} / Contact of record{" "}
             <span className="data">{vendor.contact_phone}</span>
           </p>
         </div>
@@ -61,6 +65,15 @@ export default async function EvidencePackPage({ params }: PageProps<"/evidence/
         </p>
       ) : (
         <>
+          {manual && (
+            <div className="mt-6 rounded-[10px] border border-line bg-panel px-4 py-3 text-[14px] text-ink-2">
+              <p>
+                Verified outside Kovrell by <span className="text-ink">{manual.verified_by}</span>, {MANUAL_METHOD_LABEL[manual.method].toLowerCase()}. No call was
+                placed, so there&apos;s no recording. The vendor confirmed the new account ending <span className="data">{manual.confirmed_last4}</span>.
+              </p>
+              {manual.note && <p className="mt-1 text-muted">Note: {manual.note}</p>}
+            </div>
+          )}
           {view.isShowcase && (
             <p className="mt-6 rounded-[10px] border border-line bg-panel px-4 py-3 text-[14px] text-muted">
               Showcase run recorded on this system. The agent ran live on the AssemblyAI Voice Agent API. The vendor&apos;s answers were spoken
@@ -76,12 +89,14 @@ export default async function EvidencePackPage({ params }: PageProps<"/evidence/
                 : "Payment stays held."}
           </p>
 
+          {run.channel !== "manual" && (
           <section className="mt-12">
-            <p className="label text-subtle">Recording</p>
-            <div className="mt-4">
-              <Recording src={view.audioSrc} levels={evidence?.levels ?? []} available={Boolean(evidence?.audio_available)} />
-            </div>
-          </section>
+              <p className="label text-subtle">Recording</p>
+              <div className="mt-4">
+                <Recording src={view.audioSrc} levels={evidence?.levels ?? []} available={Boolean(evidence?.audio_available)} />
+              </div>
+            </section>
+          )}
 
           <section className="mt-14">
             <p className="label text-subtle">Checks</p>
@@ -114,7 +129,7 @@ export default async function EvidencePackPage({ params }: PageProps<"/evidence/
 
           {provenance && (
             <section className="mt-14">
-              <p className="label text-subtle">Provenance at call time</p>
+              <p className="label text-subtle">{run.channel === "manual" ? "Provenance at verification time" : "Provenance at call time"}</p>
               <div className="mt-3">
                 {provenance.map((p) => (
                   <div key={p.key} className="flex flex-wrap items-baseline justify-between gap-x-6 border-t border-line py-3">

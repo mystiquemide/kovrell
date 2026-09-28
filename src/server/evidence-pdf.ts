@@ -147,6 +147,15 @@ export async function buildEvidencePdf(input: EvidenceReportInput): Promise<Uint
         : "Payment stays held.",
     { size: 11, color: MUTED },
   );
+  const manual = input.events.find((e) => e.kind === "manual")?.payload as { verified_by: string; method: string; confirmed_last4: string; note: string | null } | undefined;
+  if (manual) {
+    y -= 4;
+    const how = { in_person: "in person", video_call: "on a video call", known_number: "on a number already known to AP" }[manual.method] ?? manual.method;
+    text(`Verified outside Kovrell by ${manual.verified_by}, ${how}. No call was placed, so there is no recording. The vendor confirmed the new account ending ${manual.confirmed_last4}.${manual.note ? ` Note: ${manual.note}` : ""}`, {
+      size: 9.5,
+      color: MUTED,
+    });
+  }
   if (input.isShowcase) {
     y -= 4;
     text("Showcase run. The agent ran live on the AssemblyAI Voice Agent API; the vendor's answers were spoken by a scripted test caller against the sample ledger.", {
@@ -197,8 +206,9 @@ export async function buildEvidencePdf(input: EvidenceReportInput): Promise<Uint
     }
   }
 
-  heading("Timeline");
-  for (const e of input.events.filter((ev) => ["agent", "vendor", "tool"].includes(ev.kind))) {
+  const timeline = input.events.filter((ev) => ["agent", "vendor", "tool"].includes(ev.kind));
+  if (timeline.length) heading("Timeline");
+  for (const e of timeline) {
     const p = e.payload as { text?: string; name?: string; args?: Record<string, unknown> };
     const who = e.kind === "agent" ? "Agent" : e.kind === "tool" ? "Tool" : "Vendor";
     const what = e.kind === "tool" ? `${p.name}(${p.args?.question_id ? String(p.args.question_id) : ""})` : (p.text ?? "");

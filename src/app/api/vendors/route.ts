@@ -3,6 +3,7 @@ import { z } from "zod";
 import { COMPANY_COOKIE } from "@/lib/company";
 import { allow, clientIp } from "@/server/rate-limit";
 import { formErrors } from "@/server/form-errors";
+import { getRunController } from "@/server/runs";
 import { getStore } from "@/server/store";
 
 export const dynamic = "force-dynamic";
@@ -64,7 +65,8 @@ export async function POST(req: Request) {
   }
   const parsed = CreateVendor.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return Response.json(formErrors(parsed.error), { status: 400 });
-  const vendor = getStore().createVendorLedger(parsed.data);
+  // Vendors pruned to make room take their call recordings with them.
+  const vendor = getStore().createVendorLedger(parsed.data, Date.now(), 12, (sessions) => void getRunController().deleteSessions(sessions));
   // Remember the visitor's company so the app shows it, the way a signed-in tenant would see their own name.
   if (parsed.data.payer_name) {
     (await cookies()).set(COMPANY_COOKIE, parsed.data.payer_name, { maxAge: 30 * 86_400, sameSite: "lax", secure: true, path: "/" });

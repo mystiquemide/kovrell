@@ -141,8 +141,13 @@ export interface RunListRow extends Run {
 export function createStore(db: Db) {
   const isEmpty = () => (db.prepare("SELECT COUNT(*) AS n FROM vendors").get() as { n: number }).n === 0;
 
-  /** Deletes a vendor and everything recorded against it. */
-  const removeVendor = (id: string) => {
+  /** Deletes a vendor and everything recorded against it. Returns the AssemblyAI session ids its runs used. */
+  const removeVendor = (id: string): string[] => {
+    const sessions = (
+      db.prepare(`SELECT r.aai_session_id AS s FROM runs r JOIN requests q ON q.id = r.request_id WHERE q.vendor_id = ? AND r.aai_session_id IS NOT NULL`).all(id) as {
+        s: string;
+      }[]
+    ).map((r) => r.s);
     const runs = `SELECT r.id FROM runs r JOIN requests q ON q.id = r.request_id WHERE q.vendor_id = ?`;
     for (const t of ["evidence", "checks", "run_events"]) db.prepare(`DELETE FROM ${t} WHERE run_id IN (${runs})`).run(id);
     db.prepare(`DELETE FROM runs WHERE request_id IN (SELECT id FROM requests WHERE vendor_id = ?)`).run(id);
@@ -150,6 +155,7 @@ export function createStore(db: Db) {
     for (const t of ["requests", "payments", "invoices", "vendor_changes", "vendors"]) {
       db.prepare(`DELETE FROM ${t} WHERE ${t === "vendors" ? "id" : "vendor_id"} = ?`).run(id);
     }
+    return sessions;
   };
 
   return {
@@ -159,13 +165,16 @@ export function createStore(db: Db) {
       if (isEmpty()) seedSampleLedger(db, now);
     },
 
-    reset(now = Date.now()) {
+    /** Restores the sample ledger. Returns the AssemblyAI session ids of the runs it removed. */
+    reset(now = Date.now()): string[] {
+      const sessions = (db.prepare("SELECT aai_session_id AS s FROM runs WHERE aai_session_id IS NOT NULL").all() as { s: string }[]).map((r) => r.s);
       db.transaction(() => {
         for (const t of ["webhooks", "evidence", "checks", "run_events", "runs", "requests", "payments", "invoices", "vendor_changes", "vendors"]) {
           db.prepare(`DELETE FROM ${t}`).run();
         }
         seedSampleLedger(db, now);
       })();
+      return sessions;
     },
 
     listInbox(): InboxRow[] {
@@ -378,6 +387,7 @@ export function createStore(db: Db) {
       },
       now = Date.now(),
       keepCustom = 12,
+      onPruned?: (sessionIds: string[]) => void,
     ): Vendor {
       const id = `v_${randomUUID().slice(0, 8)}`;
       const day = 86_400_000;
@@ -414,7 +424,8 @@ export function createStore(db: Db) {
              ORDER BY v.rowid DESC`,
           )
           .all() as { id: string }[];
-        for (const { id: old } of custom.slice(keepCustom)) removeVendor(old);
+        const pruned = custom.slice(keepCustom).flatMap(({ id: old }) => removeVendor(old));
+        if (pruned.length) onPruned?.(pruned);
       })();
       return db.prepare("SELECT * FROM vendors WHERE id = ?").get(id) as Vendor;
     },

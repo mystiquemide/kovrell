@@ -17,6 +17,10 @@ const FIELDS: Record<string, string> = {
   vendor_id: "Vendor",
   channel: "Received by",
   invoices: "Invoices",
+  verified_by: "Verified by",
+  method: "How it was verified",
+  confirm_last4: "New account ending",
+  note: "Note",
 };
 const INVOICE_FIELDS: Record<string, string> = { number: "number", amount_cents: "total", paid_on: "paid date" };
 

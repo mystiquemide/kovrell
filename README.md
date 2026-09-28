@@ -21,7 +21,7 @@ Manual callbacks get skipped under deadline pressure, get placed to the number i
 Kovrell holds the payment and makes the callback itself. The agent calls only the contact of record, asks questions only the real vendor can answer from your own ledger, and never learns the answers. Server code compares what it heard against the ledger and decides the verdict. Every call is sealed into an evidence pack with the AssemblyAI recording and a sha256 hash.
 
 1. A bank-change request arrives and the payment is held.
-2. A preflight checks the number of record. If it changed in the last 30 days, the call is locked and a person verifies in person.
+2. A preflight checks the number of record. If it changed in the last 30 days, the call is locked. Someone on the AP team confirms the change in person, on video, or on a number they already trust, and records it in Kovrell. That record is sealed like any call, and it's also how a call that ended without a verdict gets closed. A FAIL can't be overridden.
 3. The agent calls the vendor: confirm identity, confirm they made the request, answer three ledger questions, and confirm a readback of the new account. The questions (two invoice totals and one payment date) are drawn at random from the vendor's recent paid invoices on every call, so there's no fixed script to prepare for.
 4. The server scores the answers, applies the verdict, and seals the evidence.
 
@@ -30,9 +30,9 @@ Kovrell holds the payment and makes the callback itself. The agent calls only th
 | PASS | Identity and request confirmed, at least 2 of 3 ledger answers right, readback confirmed | Released to the new account |
 | FAIL | Request denied, wrong person, 2 or more wrong answers, or readback rejected | Blocked, account on file kept |
 | INCONCLUSIVE | Hangup, timeout, provider error, or missing steps | Stays held, retry allowed |
-| LOCKED | Number of record changed in the last 30 days | No call placed |
+| LOCKED | Number of record changed in the last 30 days | No call placed. A person can confirm in person and record it |
 
-"I don't know" counts as wrong, and each question gets one attempt.
+"I don't know" counts as wrong, and each question gets one attempt. Vendors can read what's recorded and kept on [/privacy](https://kovrell.midelabs.xyz/privacy). Resetting the sandbox deletes Kovrell's records and the AssemblyAI recordings of those calls.
 
 ## How it uses AssemblyAI
 
