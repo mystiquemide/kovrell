@@ -1,8 +1,8 @@
 import { Nav } from "@/components/nav";
-import { defaultCompany, visitorCompany } from "@/lib/company";
+import { visitorCompany } from "@/lib/company";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
-  const company = `${(await visitorCompany()) ?? defaultCompany()} AP`;
+  const company = await visitorCompany();
   return (
     <>
       <Nav company={company} />

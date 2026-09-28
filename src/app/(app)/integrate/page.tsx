@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Arrow, ButtonLink } from "@/components/button";
+import { CopyButton } from "@/components/copy-button";
 
 export const metadata = { title: "Integrate" };
 
@@ -76,7 +77,12 @@ export default function IntegratePage() {
             <div className="min-w-0">
               <h2 className="subheading text-[20px] text-ink">{s.title}</h2>
               <p className="mt-2 text-[15px] leading-[1.55] text-muted">{s.body}</p>
-              <pre className="data mt-4 overflow-x-auto rounded-[10px] border border-line bg-panel p-4 text-[13px] leading-[1.6] text-ink">{s.code}</pre>
+              <div className="relative mt-4">
+                <pre className="data overflow-x-auto rounded-[10px] border border-line bg-panel p-4 pr-20 text-[13px] leading-[1.6] text-ink">{s.code}</pre>
+                <div className="absolute right-3 top-3">
+                  <CopyButton text={s.code} />
+                </div>
+              </div>
             </div>
           </section>
         ))}

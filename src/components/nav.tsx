@@ -12,7 +12,8 @@ const LINKS = [
   { href: "/evidence", label: "Evidence", match: ["/evidence"] },
 ];
 
-export function Nav({ company }: { company: string }) {
+/** `company` is the visitor's company from Set up. Without one, the nav invites them to set it. */
+export function Nav({ company }: { company: string | null }) {
   const path = usePathname();
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-canvas">
@@ -39,7 +40,16 @@ export function Nav({ company }: { company: string }) {
             );
           })}
         </nav>
-        <span className="hidden h-10 items-center rounded-[12px] bg-chip px-4 font-display text-[15px] font-medium text-ink md:inline-flex">{company}</span>
+        {company ? (
+          <span className="hidden h-10 items-center rounded-[12px] bg-chip px-4 font-display text-[15px] font-medium text-ink md:inline-flex">{company} AP</span>
+        ) : (
+          <Link
+            href="/setup"
+            className="hidden h-10 items-center rounded-[12px] bg-chip px-4 font-display text-[15px] font-medium text-ink hover:bg-line md:inline-flex"
+          >
+            Set your company
+          </Link>
+        )}
       </div>
     </header>
   );
