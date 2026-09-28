@@ -1,6 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
 import { getRunController } from "@/server/runs";
-import { getStore } from "@/server/store";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +25,8 @@ export async function POST(req: Request) {
     const wait = Math.ceil((PUBLIC_RESET_INTERVAL_MS - (now - last)) / 1000);
     return Response.json({ error: `The ledger was just reset. Try again in ${wait} seconds.` }, { status: 429 });
   }
-  getStore().reset();
   g.__kovrellLastReset = now;
-  return Response.json({ ok: true });
+  // Recordings go with the runs: the AssemblyAI sessions of every removed run are deleted too.
+  const recordingsDeleted = await getRunController().resetLedger();
+  return Response.json({ ok: true, recordingsDeleted });
 }

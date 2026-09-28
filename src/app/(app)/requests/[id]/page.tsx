@@ -5,6 +5,7 @@ import { CHANNEL_LABEL, dateOnly, dateTime, duration, money } from "@/lib/format
 import { getStore } from "@/server/store";
 import { requestView } from "@/server/views";
 import { CallButton } from "@/components/call-button";
+import { InPersonForm } from "./in-person-form";
 import { COPY } from "@/lib/messages";
 import { defaultCompany, visitorCompany } from "@/lib/company";
 import type { Metadata } from "next";
@@ -158,6 +159,10 @@ export default async function RequestPage({ params }: PageProps<"/requests/[id]"
           />
         )}
       </section>
+
+      {request.status === "held" && !openRunId && (locked || runs[0]?.verdict === "INCONCLUSIVE") && (
+        <InPersonForm requestId={request.id} reason={locked ? "locked" : "inconclusive"} />
+      )}
 
       {runs.length > 0 && (
         <section className="mt-14">

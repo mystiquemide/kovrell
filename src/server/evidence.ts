@@ -38,6 +38,16 @@ export function aaiSessionFetcher(apiKey: string): FetchSession {
   };
 }
 
+export type DeleteSession = (sessionId: string) => Promise<boolean>;
+
+/** Deletes a Voice Agent session, which makes its recording and timeline inaccessible. Already gone counts as deleted. */
+export function aaiSessionDeleter(apiKey: string): DeleteSession {
+  return async (sessionId) => {
+    const res = await fetch(`${AAI_API}/sessions/${sessionId}`, { method: "DELETE", headers: { Authorization: apiKey } }).catch(() => null);
+    return Boolean(res && (res.ok || res.status === 404));
+  };
+}
+
 /** JSON with sorted keys, so the seal is stable across runs of the same data. */
 export function canonicalJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
@@ -99,7 +109,8 @@ export async function sealEvidence(
   if (!run) return null;
   const detail = store.getRequestDetail(run.request_id)!;
   const events = store.listEvents(runId);
-  const ringing = events.find((e) => e.kind === "state" && (e.payload as { state?: string }).state === "ringing");
+  // Provenance is recorded when a call rings, or when a person records an in-person verification.
+  const ringing = events.find((e) => e.kind === "state" && ["ringing", "manual"].includes((e.payload as { state?: string }).state ?? ""));
 
   let timeline: Timeline | null = null;
   let audioAvailable = false;

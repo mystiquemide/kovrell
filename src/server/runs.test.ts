@@ -190,4 +190,57 @@ describe("RunController", () => {
       evidence: { pdf: `https://kovrell.test/api/runs/${run.id}/pdf` },
     });
   });
+
+  describe("manual verification", () => {
+    const input = { verified_by: "Dana Cole", method: "in_person" as const, confirm_last4: "4480" };
+
+    it("verifies a locked request in person, releases the payment, and seals a record without a call", async () => {
+      const { store, controller } = setup();
+      const run = await controller.recordManualVerification("req_brightline", input);
+      expect(run).toMatchObject({ channel: "manual", status: "ended", verdict: "PASS" });
+      expect(run.reason).toContain("Dana Cole");
+      const d = store.getRequestDetail("req_brightline")!;
+      expect(d.request.status).toBe("verified");
+      expect(d.payment).toMatchObject({ status: "released", destination_last4: "4480" });
+      expect(store.getEvidence(run.id)?.sha256).toMatch(/^[0-9a-f]{64}$/);
+      const record = store.getEvidence(run.id)?.record as { provenance_at_call: unknown[] };
+      expect(record.provenance_at_call.length).toBeGreaterThan(0);
+    });
+
+    it("refuses a callable request that hasn't been called, and a wrong account ending", async () => {
+      const { controller } = setup();
+      await expect(controller.recordManualVerification("req_northwind", { ...input, confirm_last4: "8841" })).rejects.toMatchObject({ code: "not_eligible" });
+      await expect(controller.recordManualVerification("req_brightline", { ...input, confirm_last4: "0000" })).rejects.toMatchObject({ code: "mismatch" });
+    });
+
+    it("allows a request whose call was INCONCLUSIVE, but never overrides a FAIL", async () => {
+      const { controller, agents } = setup();
+      const first = controller.createRun("req_northwind").run;
+      controller.answer(first.call_token, fakeChannel());
+      agents[0].end({ verdict: "INCONCLUSIVE", reason: "dropped" } as VerdictResult, false);
+      const run = await controller.recordManualVerification("req_northwind", { ...input, confirm_last4: "8841" });
+      expect(run.verdict).toBe("PASS");
+
+      const fail = controller.createRun("req_halden").run;
+      controller.answer(fail.call_token, fakeChannel());
+      agents[1].end({ verdict: "FAIL", reason: "denied" } as VerdictResult);
+      await expect(controller.recordManualVerification("req_halden", { ...input, confirm_last4: "7712" })).rejects.toMatchObject({ code: "not_held" });
+    });
+  });
+
+  it("deletes the AssemblyAI sessions of every run a reset removes", async () => {
+    const store = createStore(openDb(":memory:"));
+    store.seedIfEmpty(NOW);
+    const deleted: string[] = [];
+    const { factory } = fakeAgentFactory();
+    const controller = new RunController({
+      store, apiKey: "k", company: "Acme", publicBaseUrl: "https://kovrell.test", agentFactory: factory, now: () => NOW,
+      deleteSession: async (id) => (deleted.push(id), true),
+    });
+    const { run } = controller.createRun("req_northwind");
+    store.updateRun(run.id, { aai_session_id: "sess_abc" });
+    expect(await controller.resetLedger()).toBe(1);
+    expect(deleted).toEqual(["sess_abc"]);
+    expect(store.getRun(run.id)).toBeNull();
+  });
 });

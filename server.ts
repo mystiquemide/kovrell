@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
 import next from "next";
 import { WebSocketServer, type WebSocket } from "ws";
-import { aaiSessionFetcher } from "./src/server/evidence";
+import { aaiSessionDeleter, aaiSessionFetcher } from "./src/server/evidence";
 import { RunController, setRunController } from "./src/server/runs";
 import { getStore } from "./src/server/store";
 import { wsRoutes } from "./src/server/ws-routes";
@@ -22,6 +22,7 @@ app.prepare().then(() => {
       company: process.env.KOVRELL_COMPANY_NAME || "Acme Manufacturing",
       publicBaseUrl: process.env.PUBLIC_BASE_URL || `http://localhost:${port}`,
       fetchSession: aaiSessionFetcher(apiKey),
+      deleteSession: aaiSessionDeleter(apiKey),
     }),
   );
 

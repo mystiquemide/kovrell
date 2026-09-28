@@ -7,7 +7,7 @@ import { buildChallenges, type Challenge } from "./verification/challenges";
 import { COPY } from "../lib/messages";
 import { deliverWebhook, type DeliverOptions } from "./webhook";
 import { preflight } from "./verification/provenance";
-import { sealWithRetry, type FetchSession } from "./evidence";
+import { sealEvidence, sealWithRetry, type DeleteSession, type FetchSession } from "./evidence";
 import { LevelMeter, rms } from "./levels";
 import { publicChecks, publicRun } from "./views";
 
@@ -17,7 +17,7 @@ export class RunError extends Error {
   readonly name = "RunError";
   constructor(
     message: string,
-    readonly code: "not_found" | "locked" | "not_held" | "busy",
+    readonly code: "not_found" | "locked" | "not_held" | "busy" | "not_eligible" | "mismatch",
   ) {
     super(message);
   }
@@ -43,6 +43,8 @@ export interface RunControllerOptions {
   agentFactory?: AgentFactory;
   /** Reads AssemblyAI session artifacts after a call. Null disables evidence fetching (tests). */
   fetchSession?: FetchSession | null;
+  /** Deletes AssemblyAI sessions when their runs are removed. Null keeps them (tests). */
+  deleteSession?: DeleteSession | null;
   now?: () => number;
 }
 
@@ -57,6 +59,13 @@ interface LiveRun {
   speechEndedAt: number | null;
   responseGaps: number[];
 }
+
+export type ManualMethod = "in_person" | "video_call" | "known_number";
+export const MANUAL_METHOD_LABEL: Record<ManualMethod, string> = {
+  in_person: "In person",
+  video_call: "On a video call",
+  known_number: "On a number already known to AP",
+};
 
 /** Owns every verification run: creation, the live call, persistence, the ledger outcome, and watchers. */
 export class RunController {
@@ -206,6 +215,66 @@ export class RunController {
 
   hasLiveCalls() {
     return this.live.size > 0;
+  }
+
+  /** Asks AssemblyAI to delete the given sessions, so their recordings go with the runs that made them. */
+  async deleteSessions(sessionIds: string[]): Promise<number> {
+    const del = this.opts.deleteSession;
+    if (!del || !sessionIds.length) return 0;
+    const results = await Promise.allSettled(sessionIds.map((id) => del(id)));
+    return results.filter((r) => r.status === "fulfilled" && r.value).length;
+  }
+
+  /** Restores the sample ledger and deletes the recordings of every run it removes. */
+  async resetLedger(): Promise<number> {
+    return this.deleteSessions(this.opts.store.reset(this.now()));
+  }
+
+  /**
+   * Records a verification a person did outside Kovrell's call: in person, on video, or on a known number.
+   * Only for requests Kovrell can't call (locked) or whose last call ended without a verdict. A FAIL stays blocked.
+   */
+  async recordManualVerification(
+    requestId: string,
+    input: { verified_by: string; method: ManualMethod; confirm_last4: string; note?: string },
+    visitorCompany?: string | null,
+  ): Promise<Run> {
+    const { store } = this.opts;
+    const detail = store.getRequestDetail(requestId);
+    if (!detail) throw new RunError(COPY.requestNotFound, "not_found");
+    if (detail.request.status !== "held") throw new RunError(COPY.decided, "not_held");
+    const latest = store.latestRunForRequest(requestId);
+    if (latest && (latest.status === "live" || (latest.status === "ringing" && !latest.token_used && Date.parse(latest.token_expires_at) >= this.now()))) {
+      throw new RunError(COPY.busy, "busy");
+    }
+    const check = preflight(detail, this.now());
+    if (!check.locked && latest?.verdict !== "INCONCLUSIVE") throw new RunError(COPY.manualNotEligible, "not_eligible");
+    if (input.confirm_last4 !== detail.request.new_account_last4) throw new RunError(COPY.manualMismatch, "mismatch");
+
+    const started = this.now();
+    const how = MANUAL_METHOD_LABEL[input.method];
+    const run = {
+      id: `run_${randomUUID().slice(0, 8)}`,
+      request_id: requestId,
+      channel: "manual",
+      call_token: randomBytes(32).toString("base64url"),
+      token_expires_at: new Date(started).toISOString(),
+      started_at: new Date(started).toISOString(),
+      caller_company: detail.vendor.payer_name || visitorCompany || this.opts.company,
+    };
+    store.createRun(run);
+    store.claimToken(run.call_token); // No call link exists for a manual record.
+    this.record(run.id, "state", { state: "manual", numberOfRecord: check.numberOfRecord, provenance: check.checks });
+    this.record(run.id, "manual", { verified_by: input.verified_by, method: input.method, confirmed_last4: input.confirm_last4, note: input.note ?? null });
+    store.upsertCheck({ run_id: run.id, key: "identity", status: "pass", expected: null, heard: `${input.verified_by}, ${how.toLowerCase()}` });
+    store.upsertCheck({ run_id: run.id, key: "readback", status: "pass", expected: detail.request.new_account_last4, heard: `ending ${input.confirm_last4}` });
+    const reason = `Verified ${how.toLowerCase()} by ${input.verified_by}. No Kovrell call was placed.`;
+    store.updateRun(run.id, { status: "ended", verdict: "PASS", reason, ended_at: new Date(started).toISOString() });
+    store.setOutcome(requestId, "verified", "released", detail.request.new_account_last4);
+    this.record(run.id, "outcome", { verdict: "PASS", reason, endReason: "manual", finished: true, payment: "released" });
+    await sealEvidence(store, run.id, [], null);
+    void this.notify(run.id);
+    return store.getRun(run.id)!;
   }
 
   private onAgentEvent(runId: string, e: AgentEvent, channel: CallChannel) {

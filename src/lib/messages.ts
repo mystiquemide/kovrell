@@ -9,4 +9,7 @@ export const COPY = {
   sealing: "The evidence is still sealing. Try again in a minute.",
   runOpen: "This verification run hasn't finished yet.",
   held: "The payment stays on hold.",
+  manualNotEligible:
+    "In-person verification is for requests Kovrell can't call, or whose call ended without a verdict. Call the vendor of record first.",
+  manualMismatch: "That account ending doesn't match the request. Check the new account details with the vendor again.",
 } as const;

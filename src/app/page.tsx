@@ -514,6 +514,9 @@ export default function Landing() {
                 <Link href="/integrate" className="text-[14px] text-muted hover:text-ink">
                   Integrate
                 </Link>
+                <Link href="/privacy" className="text-[14px] text-muted hover:text-ink">
+                  Calls and recordings
+                </Link>
               </div>
             </div>
           </div>
