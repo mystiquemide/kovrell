@@ -16,6 +16,16 @@ const name = z.string().trim().min(2).max(60).regex(/^[\p{L}\p{N} .,&'()-]+$/u, 
 const last4 = z.string().regex(/^\d{4}$/, "must be 4 digits");
 const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "must be a date");
 
+/** Checked on the field itself, so a bad date is reported together with every other problem. */
+const paidOn = isoDay.refine(
+  (d) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const oldest = new Date(Date.now() - 3 * 365 * 86_400_000).toISOString().slice(0, 10);
+    return !Number.isNaN(Date.parse(d)) && d <= today && d >= oldest;
+  },
+  { message: "must be in the last 3 years, not in the future" },
+);
+
 const CreateVendor = z
   .object({
     name,
@@ -31,7 +41,7 @@ const CreateVendor = z
         z.object({
           number: z.string().trim().min(1).max(20).regex(/^[A-Za-z0-9-]+$/, "can only use letters, digits and dashes"),
           amount_cents: z.number().int().min(100).max(1_000_000_000),
-          paid_on: isoDay,
+          paid_on: paidOn,
         }),
       )
       .min(2)
@@ -41,13 +51,6 @@ const CreateVendor = z
   .superRefine((v, ctx) => {
     const numbers = v.invoices.map((i) => i.number.toUpperCase());
     if (new Set(numbers).size !== numbers.length) ctx.addIssue({ code: "custom", message: "Two invoices have the same number. Give each invoice its own number.", path: ["invoices"] });
-    const today = new Date().toISOString().slice(0, 10);
-    const oldest = new Date(Date.now() - 3 * 365 * 86_400_000).toISOString().slice(0, 10);
-    v.invoices.forEach((inv, i) => {
-      if (Number.isNaN(Date.parse(inv.paid_on)) || inv.paid_on > today || inv.paid_on < oldest) {
-        ctx.addIssue({ code: "custom", message: "Use a paid date from the last 3 years, not in the future.", path: ["invoices", i, "paid_on"] });
-      }
-    });
   });
 
 /** Integration seam: the ERP syncs a vendor, its contact of record, and its paid invoices here. */

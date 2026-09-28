@@ -43,8 +43,8 @@ export function formErrors(error: z.ZodError): { error: string; fields: Record<s
     else if (i.code === "too_big" && i.origin === "array") text = "Use at most 6 invoices.";
     else if ((i.code === "too_small" || i.code === "too_big") && /amount|payment/.test(key)) text = `${name} must be between $1 and $10,000,000.`;
     else if (i.code === "too_big") text = `${name} is too long.`;
-    else if (i.code === "custom") text = i.message;
     else if (/^[a-z]/.test(i.message)) text = `${name} ${i.message}.`;
+    else if (i.code === "custom") text = i.message;
     else text = `${name} isn't valid.`;
     fields[key] = text;
   }
